@@ -1,0 +1,2 @@
+# NautiChat-Frontend
+Frontend repository
