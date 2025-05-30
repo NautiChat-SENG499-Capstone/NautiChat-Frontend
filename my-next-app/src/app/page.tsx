@@ -2,7 +2,11 @@ export default function Home() {
   return (
     <main style={{ padding: "2rem", fontFamily: "sans-serif" }}>
       <h1>Hello</h1>
+<<<<<<< HEAD
       <p>Helsdfsdflo</p>
+=======
+      <p>Hello Shabannnn</p>
+>>>>>>> origin
     </main>
   );
 }
