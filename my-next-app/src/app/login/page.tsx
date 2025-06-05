@@ -1,100 +1,88 @@
-'use client';
+// src/app/login/page.tsx
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
+import styles from "./Login.module.css";
 
 export default function LoginPage() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [message, setMessage] = useState('');
-  const [isSuccess, setIsSuccess] = useState(false);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [message, setMessage] = useState<string | null>(null);
+  const [isSuccess, setIsSuccess] = useState<boolean>(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const res = await fetch('/api/login', {
-      method: 'POST',
-      body: JSON.stringify({ username, password }),
-      headers: { 'Content-Type': 'application/json' },
-    });
+    try {
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+      const data = await res.json();
 
-    const data = await res.json();
-    setMessage(data.message);
-    setIsSuccess(res.ok);
+      if (res.ok) {
+        setIsSuccess(true);
+        setMessage(data.message);
+      } else {
+        setIsSuccess(false);
+        setMessage(data.error || "Something went wrong.");
+      }
+    } catch (err) {
+      setIsSuccess(false);
+      setMessage("Network error.");
+    }
   };
 
   return (
-    <div style={styles.container}>
-      <div style={styles.card}>
-        <h2 style={styles.heading}>Login</h2>
-        <form onSubmit={handleLogin}>
+    <div className={styles.container}>
+      <div className={styles.card}>
+        <h2 className={styles.heading}>Log In</h2>
+        <form className={styles.form} onSubmit={handleLogin}>
+          <label htmlFor="username" className={styles.label}>
+            Username
+          </label>
           <input
+            id="username"
             type="text"
-            placeholder="Username"
+            className={styles.input}
+            placeholder="Enter your username"
             value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            onChange={(e) => setUsername(e.currentTarget.value)}
             required
-            style={styles.input}
           />
+
+          <label htmlFor="password" className={styles.label}>
+            Password
+          </label>
           <input
+            id="password"
             type="password"
-            placeholder="Password"
+            className={styles.input}
+            placeholder="Enter your password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => setPassword(e.currentTarget.value)}
             required
-            style={styles.input}
           />
-          <button type="submit" style={styles.button}>Login</button>
+
+          <button type="submit" className={styles.button}>
+            Login
+          </button>
         </form>
+
         {message && (
-          <p style={{ ...styles.message, color: isSuccess ? 'green' : 'red' }}>
+          <p
+            className={styles.message}
+            style={{ color: isSuccess ? "#2E7D32" : "#C62828" }}
+          >
             {message}
           </p>
         )}
+
+        <p className={styles.footerText}>
+          Don’t have an account? <a href="/signup">Sign up</a>
+        </p>
       </div>
     </div>
   );
 }
-
-const styles = {
-  container: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    height: '100vh',
-    backgroundColor: '#f3f4f6',
-  },
-  card: {
-    backgroundColor: '#fff',
-    padding: '2rem',
-    borderRadius: '10px',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-    width: '100%',
-    maxWidth: '400px',
-    textAlign: 'center',
-  },
-  heading: {
-    marginBottom: '1.5rem',
-  },
-  input: {
-    width: '100%',
-    padding: '0.75rem',
-    marginBottom: '1rem',
-    borderRadius: '6px',
-    border: '1px solid #ccc',
-    fontSize: '1rem',
-  },
-  button: {
-    width: '100%',
-    padding: '0.75rem',
-    backgroundColor: '#3b82f6',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '6px',
-    fontSize: '1rem',
-    cursor: 'pointer',
-  },
-  message: {
-    marginTop: '1rem',
-    fontWeight: '500',
-  },
-};

@@ -1,0 +1,170 @@
+/* src/app/login/Login.module.css */
+
+/* -------------- */
+/* 1. Background  */
+/* -------------- */
+
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+
+  /* Soft “ocean blue” gradient */
+  background: linear-gradient(
+    135deg,
+    rgba(2, 18, 59, 1) 0%,
+    rgba(0, 75, 136, 1) 100%
+  );
+  background-size: cover;
+  margin: 0;
+  padding: 0;
+}
+
+/* -------------- */
+/* 2. Card Box    */
+/* -------------- */
+
+.card {
+  background-color: #ffffff;
+  padding: 2.5rem 3rem;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  position: relative;
+}
+
+/* -------------- */
+/* 3. ONC Logo    */
+/* -------------- */
+
+/* (Optional) If you have an ONC logo image in your public folder, you can 
+   uncomment these rules and place e.g. <img src="/onc-logo.png" /> above the heading. */
+
+.logo {
+  position: absolute;
+  top: -40px; /* push it above the card’s top edge */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: auto;
+}
+
+/* -------------- */
+/* 4. Heading     */
+/* -------------- */
+
+.heading {
+  margin-top: 1.5rem; /* add space if you show a logo above */
+  margin-bottom: 1.5rem;
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #02253b; /* very dark navy */
+}
+
+/* -------------- */
+/* 5. Form        */
+/* -------------- */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* -------------- */
+/* 6. Labels      */
+/* -------------- */
+
+.label {
+  text-align: left;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #005988; /* mid-tone teal */
+}
+
+/* -------------- */
+/* 7. Inputs      */
+/* -------------- */
+/* Old version (white background, very faint placeholder): */
+/* 1. Give the input a very light gray/blue background instead of straight white */
+.input {
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  border: 1px solid #bdd7ea;       /* (unchanged) pale teal border */
+  border-radius: 6px;
+  background-color: #f3f8fb;       /* <-- lightest blue/gray for contrast */
+  color: #02253b;                  /* user‐typed text is dark navy */
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+
+/* 2. Darken border and background on focus (keeps it obvious which field is active) */
+.input:focus {
+  outline: none;
+  border-color: #004f7a;           /* darker teal border on focus */
+  background-color: #ffffff;       /* switch to white when typing, if you like */
+  box-shadow: 0 0 0 3px rgba(0, 95, 122, 0.15);
+}
+
+/* 3. Make the placeholder text more visible (darker gray) */
+.input::placeholder {
+  color: #7a9ca5;                  /* mid‐tone blue/gray, not nearly‐white */
+  opacity: 1;                      /* ensures the color isn’t dimmed further */
+}
+
+
+/* -------------- */
+/* 8. Button      */
+/* -------------- */
+
+.button {
+  margin-top: 1rem;
+  padding: 0.75rem 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #ffffff;
+  background-color: #005988; /* ONC‐teal */
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.button:hover {
+  background-color: #004f7a;
+}
+
+.button:active {
+  transform: scale(0.98);
+}
+
+/* -------------- */
+/* 9. Feedback    */
+/* -------------- */
+
+.message {
+  margin-top: 1.25rem;
+  font-size: 0.95rem;
+}
+
+/* -------------- */
+/* 10. Footer     */
+/* -------------- */
+
+.footerText {
+  margin-top: 1.75rem;
+  font-size: 0.9rem;
+  color: #02253b;
+}
+
+.footerText a {
+  color: #005988;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.footerText a:hover {
+  text-decoration: underline;
+}
