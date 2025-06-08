@@ -6,7 +6,7 @@ import Image from "next/image"
 
 export function ChatHeader() {
   return (
-    <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6">
+    <div className="bg-gradient-to-r from-blue-700 to-teal-500 text-white p-6">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-4">
             <Image src="/ONC_Primary_Pantone.png" alt="Logo" width={100} height={50} />
