@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { Bot, Menu } from "lucide-react"
 import Image from "next/image"
+import Link from "next/link"
 
 export function ChatHeader() {
   return (
@@ -26,9 +27,11 @@ export function ChatHeader() {
           </div>
         
         <div className="flex items-center space-x-4">
-          <Button variant="ghost" className="text-white hover:bg-white/20">
-            Log in
-          </Button>
+          <Link href="/login">
+            <Button variant="ghost" className="text-white hover:bg-white/20">
+              Log in
+            </Button>
+          </Link>
           <Button variant="ghost" size="icon" className="text-white hover:bg-white/20">
             <Menu className="h-5 w-5" />
           </Button>
