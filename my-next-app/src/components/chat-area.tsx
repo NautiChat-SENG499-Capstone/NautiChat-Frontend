@@ -46,7 +46,7 @@ export function ChatArea({
   return (
     <div className="flex-1 flex flex-col">
       <ScrollArea ref={scrollAreaRef} className="flex-1 p-4">
-        <div className="max-w-4xl mx-auto space-y-4">
+        <div className="max-w-1xl mx-auto space-y-4">
           {messages.map((message) => (
             <div key={message.id} className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
               <div

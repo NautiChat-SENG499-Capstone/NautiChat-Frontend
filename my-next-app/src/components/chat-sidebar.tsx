@@ -12,15 +12,11 @@ export function ChatSidebar({
   todayChats = [
     "What is the PH in the Straight of Georgia",
     "Do you have any temperature data in Cambridge Bay?",
-    "What instruments are on the Cambridge Bay observatory?",
-    "What weather sensors are there on the Cambridge Bay observatory?",
+    
   ],
   yesterdayChats = [
-    "Python function for Fibonacci sequence",
-    "Five largest lakes in the world",
-    "Weather forecast in Seattle",
-    "Chicken or the egg?",
-    "Neural networks for dummies",
+    "What instruments are on the Cambridge Bay observatory?",
+    "What weather sensors are there on the Cambridge Bay observatory?",
   ],
 }: ChatSidebarProps) {
   return (
