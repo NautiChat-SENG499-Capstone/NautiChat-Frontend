@@ -20,7 +20,7 @@ export function ChatSidebar({
   ],
 }: ChatSidebarProps) {
   return (
-    <div className="w-64 bg-gradient-to-b from-teal-500 to-teal-500 text-white">
+    <div className="w-64 bg-sky-950 text-white">
       <div className="p-4">
         <h2 className="text-xl font-semibold mb-4">Chats</h2>
         <Button variant="ghost" className="w-full justify-start text-white hover:bg-white/20 mb-4">

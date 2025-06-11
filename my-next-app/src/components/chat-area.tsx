@@ -54,11 +54,11 @@ export function ChatArea({
                   message.role === "user"
                     ? "bg-blue-600 text-white rounded-br-md"
                     : "bg-gray-200 text-gray-800 rounded-bl-md"
-                } ${message.content === "Processing..." ? "animate-pulse" : ""}`}
+                } ${message.content === "Processing" ? "animate-pulse" : ""}`}
               >
                 <p className="text-sm leading-relaxed">
                   {message.content}
-                  {message.content === "Processing..." && (
+                  {message.content === "Processing" && (
                     <span className="inline-block ml-1">
                       <span className="animate-pulse">.</span>
                       <span className="animate-pulse animation-delay-200">.</span>

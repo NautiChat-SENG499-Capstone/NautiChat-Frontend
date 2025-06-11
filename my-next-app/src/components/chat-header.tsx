@@ -7,10 +7,10 @@ import Link from "next/link"
 
 export function ChatHeader() {
   return (
-    <div className="bg-gradient-to-r from-blue-700 to-teal-500 text-white p-6">
+    <div className="bg-cyan-600 text-white p-6">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-4">
-            <Image src="/ONC_Primary_Pantone.png" alt="Logo" width={100} height={50} />
+            <Image src="/ONC_Primary_Pantone.png" alt="Logo" width={100} height={55} />
         </div>
         
          <div className="text-center">
@@ -27,7 +27,7 @@ export function ChatHeader() {
           </div>
         
         <div className="flex items-center space-x-4">
-          <Link href="/login">
+          <Link href="/auth/login">
             <Button variant="ghost" className="text-white hover:bg-white/20">
               Log in
             </Button>
