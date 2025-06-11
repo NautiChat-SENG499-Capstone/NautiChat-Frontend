@@ -7,7 +7,7 @@ import Link from "next/link"
 
 export function ChatHeader() {
   return (
-    <div className="bg-cyan-600 text-white p-6">
+    <div className="bg-sky-950 text-white p-6">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-4">
             <Image src="/ONC_Primary_Pantone.png" alt="Logo" width={100} height={55} />
