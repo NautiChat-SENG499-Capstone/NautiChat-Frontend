@@ -1,9 +1,9 @@
 "use client"
 
-import { ChatHeader } from "@/components/chat-header"
-import { ChatSidebar } from "@/components/chat-sidebar"
-import { ChatArea } from "@/components/chat-area"
-import { ChatInput } from "@/components/chat-input"
+import { ChatHeader } from "@/components/ChatHeader"
+import { ChatSidebar } from "@/components/ChatSidebar"
+import { ChatArea } from "@/components/ChatArea"
+import { ChatInput } from "@/components/ChatInput"
 import type { Message } from "@/types/chat"
 import { useState } from "react"
 
