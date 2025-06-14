@@ -3,8 +3,8 @@
 import { ChatHeader } from "@/components/ChatHeader"
 import { ChatSidebar } from "@/components/ChatSidebar"
 import { ChatArea } from "@/components/ChatArea"
-import { ChatInput } from "@/components/ChatInput"
-import type { Message } from "@/types/chat"
+import { ChatInput } from "@/components/chatInput"
+import type { Message } from "../types/chat"
 import { useState } from "react"
 
 export default function OceansChatBot() {
