@@ -1,6 +1,4 @@
-// components/QueryTable.tsx
 export default function QueryTable() {
-  // This is placeholder data — replace with props or fetch logic later
   const queries = [
     { id: 1, text: "What is ocean salinity?", date: "2025-06-08" },
     { id: 2, text: "Show me sensor data for Station A", date: "2025-06-09" },

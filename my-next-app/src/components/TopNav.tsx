@@ -6,9 +6,14 @@ import { Settings, LogOut, User } from 'lucide-react';
 export default function TopNav() {
   return (
     <nav className="bg-white shadow-sm px-6 py-4 flex items-center justify-between">
-      <Link href="/" className="text-xl font-semibold text-blue-600 hover:underline">
-        NautiChat
+      <Link href="/admin" className="text-2xl font-bold text-blue-600 flex items-center gap-1">
+        <span className="hover:underline">NautiChat</span>
+        <span className="relative top-[3.5px] bg-gray-200 text-gray-600 text-xs px-2 py-0.5 rounded-full">
+          Admin
+        </span>
       </Link>
+
+
 
       <div className="flex items-center gap-4 text-gray-600">
         <button title="Settings" className="hover:text-gray-800 transition">

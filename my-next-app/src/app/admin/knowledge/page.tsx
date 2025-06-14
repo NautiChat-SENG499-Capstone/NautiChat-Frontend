@@ -1,14 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import TopNav from '@/components/TopNav';
+import AdminLayout from '@/components/AdminLayout';
 
 export default function KnowledgeBasePage() {
   const [activeTab, setActiveTab] = useState<'qa' | 'upload' | 'view'>('qa');
 
   return (
-    <main className="min-h-screen bg-gray-50">
-      <TopNav />
+    <AdminLayout>
       <section className="max-w-6xl mx-auto py-10 px-4">
         <header className="mb-6">
           <h1 className="text-2xl font-bold text-gray-800">Manage Knowledge Base</h1>
@@ -106,6 +105,6 @@ export default function KnowledgeBasePage() {
           )}
         </div>
       </section>
-    </main>
+    </AdminLayout>
   );
 }

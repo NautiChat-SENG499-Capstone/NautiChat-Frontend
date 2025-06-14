@@ -9,7 +9,6 @@ export default function KnowledgeManager() {
 
   const handleQASubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: send question and answer to backend
     console.log('Submitting QA:', { question, answer });
     setQuestion('');
     setAnswer('');
@@ -17,7 +16,6 @@ export default function KnowledgeManager() {
 
   const handleDocUpload = (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: upload documents to backend
     if (documents) {
       console.log('Uploading documents:', documents);
       setDocuments(null);
