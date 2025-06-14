@@ -8,7 +8,13 @@ import { Label } from "@/components/ui/label"
 import PasswordInput from "./PasswordInput"
 
 export default function RegisterForm() {
-  const [formData, setFormData] = useState({ name: "", email: "", password: "", confirmPassword: "" })
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    oncToken: "", // ✅ New field
+  })
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
@@ -44,6 +50,7 @@ export default function RegisterForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {error && <div className="text-red-500 text-sm">{error}</div>}
+
       <div className="space-y-2">
         <Label htmlFor="name">Full Name</Label>
         <Input
@@ -57,6 +64,7 @@ export default function RegisterForm() {
           className="h-12"
         />
       </div>
+
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
         <Input
@@ -70,6 +78,7 @@ export default function RegisterForm() {
           className="h-12"
         />
       </div>
+
       <div className="space-y-2">
         <Label htmlFor="password">Password</Label>
         <PasswordInput
@@ -81,6 +90,7 @@ export default function RegisterForm() {
           disabled={loading}
         />
       </div>
+
       <div className="space-y-2">
         <Label htmlFor="confirmPassword">Confirm Password</Label>
         <PasswordInput
@@ -92,6 +102,21 @@ export default function RegisterForm() {
           disabled={loading}
         />
       </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="oncToken">ONC Token</Label>
+        <Input
+          id="oncToken"
+          name="oncToken"
+          type="text"
+          placeholder="Enter your ONC token"
+          value={formData.oncToken}
+          onChange={handleChange}
+          disabled={loading}
+          className="h-12"
+        />
+      </div>
+
       <Button type="submit" className="w-full h-12" disabled={loading}>
         {loading ? "Creating Account..." : "Create Account"}
       </Button>
