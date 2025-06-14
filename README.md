@@ -4,13 +4,13 @@ This is the frontend repository for our SENG 499 capstone project: an AI powered
 # Frontend responsibilities
 UI:
 - A standalone chatbot page
-- A pop-up chatbot
 - An admin upload page
 - A landing page for users
 
 
 Tech stack:
-- Framework: next.js?
+- Next.js
+- Tailwind CSS
+- Jest
+- Cypress
 
-NEED TO DO:
-- need to create a react or next project
