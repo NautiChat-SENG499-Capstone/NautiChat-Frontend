@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import TopNav from '@/components/TopNav';
+import AdminLayout from '@/components/AdminLayout';
 
 type Feedback = {
   id: number;
@@ -43,8 +43,7 @@ export default function FeedbackPage() {
   const paginated = filtered.slice(start, start + perPage);
 
   return (
-    <main className="min-h-screen bg-gray-50">
-      <TopNav />
+    <AdminLayout>
       <section className="max-w-6xl mx-auto py-10 px-4">
         <h1 className="text-2xl font-bold text-gray-800 mb-4">User Feedback</h1>
 
@@ -104,7 +103,9 @@ export default function FeedbackPage() {
               key={i}
               onClick={() => setPage(i + 1)}
               className={`px-3 py-1 rounded-md border ${
-                page === i + 1 ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-100'
+                page === i + 1
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-white text-gray-700 hover:bg-gray-100'
               }`}
             >
               {i + 1}
@@ -116,6 +117,6 @@ export default function FeedbackPage() {
           Showing {paginated.length} of {filtered.length} feedback entries
         </div>
       </section>
-    </main>
+    </AdminLayout>
   );
 }
