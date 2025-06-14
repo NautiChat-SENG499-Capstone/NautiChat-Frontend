@@ -34,7 +34,7 @@ export default function RegisterForm() {
     setLoading(true)
 
     try {
-      const res = await fetch("https://nautichat-api-1050974581549.northamerica-northeast1.run.app/auth/register", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -52,7 +52,7 @@ export default function RegisterForm() {
       }
 
       const data = await res.json()
-      localStorage.setItem("token", data.access_token) // saves the access_token to localStrogage,
+      localStorage.setItem("token", data.access_token) // saves the access_token to localStrogage, the JWT so frontend can use it later to access protected routes like admin portal
 
       router.push("/chat") // Redirect user to the /chat page
     } catch (err: any) {

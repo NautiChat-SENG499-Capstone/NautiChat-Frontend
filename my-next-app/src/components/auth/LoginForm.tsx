@@ -20,9 +20,11 @@ export default function LoginForm() {
     setLoading(true)
 
     try {
-      const res = await fetch("https://nautichat-api-1050974581549.northamerica-northeast1.run.app/auth/login", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
         method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
         body: new URLSearchParams({
           username: email,
           password: password,
