@@ -1,47 +1,62 @@
 "use client"
+
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { signIn } from "next-auth/react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import PasswordInput from "./PasswordInput"
 
 export default function RegisterForm() {
+  const router = useRouter()
   const [formData, setFormData] = useState({
-    name: "",
     email: "",
     password: "",
     confirmPassword: "",
-    oncToken: "", // ✅ New field
-  })
+    oncToken: "",
+  }) // This component will handle user registration and talk directly to FASTAPI backend
+
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-  const router = useRouter()
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
-  }
+  } // Updates the field in formData if a user types into a textbox
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (formData.password !== formData.confirmPassword) return setError("Passwords do not match")
+    setError(null)
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match")
+      return
+    }
 
     setLoading(true)
-    setError(null)
 
     try {
-      // fake API call for now
-      setTimeout(async () => {
-        await signIn("credentials", {
-          email: formData.email,
+      const res = await fetch("https://nautichat-api-1050974581549.northamerica-northeast1.run.app/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: formData.email,
           password: formData.password,
-          redirect: false,
-        })
-        router.push("/dashboard")
-      }, 1000)
-    } catch (err) {
-      setError("Registration failed. Please try again.")
+          onc_token: formData.oncToken,
+        }),
+      })
+
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.detail || "Registration failed")
+      }
+
+      const data = await res.json()
+      localStorage.setItem("token", data.access_token) // saves the access_token to localStrogage,
+
+      router.push("/chat") // Redirect user to the /chat page
+    } catch (err: any) {
+      setError(err.message)
     } finally {
       setLoading(false)
     }
@@ -50,20 +65,6 @@ export default function RegisterForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {error && <div className="text-red-500 text-sm">{error}</div>}
-
-      <div className="space-y-2">
-        <Label htmlFor="name">Full Name</Label>
-        <Input
-          id="name"
-          name="name"
-          type="text"
-          placeholder="John Doe"
-          value={formData.name}
-          onChange={handleChange}
-          disabled={loading}
-          className="h-12"
-        />
-      </div>
 
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
