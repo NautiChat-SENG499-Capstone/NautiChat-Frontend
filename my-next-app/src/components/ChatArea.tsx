@@ -1,7 +1,7 @@
 "use client"
 
 import { ScrollArea } from "@/components/ui/scroll-area"
-import type { Message } from "@/types/chat"
+import type { Message } from "../app/types/chat"
 import { useEffect, useRef } from "react"
 
 interface ChatAreaProps {
