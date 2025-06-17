@@ -3,7 +3,7 @@
 import { ChatHeader } from "@/components/ChatHeader"
 import { ChatSidebar } from "@/components/ChatSidebar"
 import { ChatArea } from "@/components/ChatArea"
-import { ChatInput } from "@/components/chatInput"
+import { ChatInput } from "@/components/ChatInput"
 import type { Message } from "../types/chat"
 import { useState } from "react"
 
