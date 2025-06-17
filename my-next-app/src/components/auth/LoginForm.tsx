@@ -9,7 +9,7 @@ import PasswordInput from "./PasswordInput"
 
 export default function LoginForm() {
   const router = useRouter()
-  const [email, setEmail] = useState("")
+  const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -26,7 +26,7 @@ export default function LoginForm() {
           "Content-Type": "application/x-www-form-urlencoded",
         },
         body: new URLSearchParams({
-          username: email,
+          username: username,
           password: password,
         }),
       })
@@ -37,7 +37,7 @@ export default function LoginForm() {
       }
 
       const data = await res.json()
-      localStorage.setItem("token", data.access_token)
+      localStorage.setItem("access_token", data.access_token)
 
       router.push("/chat")
     } catch (err: any) {
@@ -52,13 +52,13 @@ export default function LoginForm() {
       {error && <div className="text-red-500 text-sm">{error}</div>}
 
       <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="username">Username</Label>
         <Input
-          id="email"
-          type="email"
+          id="username"
+          type="username"
           placeholder="you@example.com"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
           required
           disabled={loading}
           className="h-12"
