@@ -23,18 +23,29 @@ export default function QueriesPage() {
   const perPage = 5;
 
   useEffect(() => {
-    const accessToken = localStorage.getItem('access_token');
+    const accessToken = sessionStorage.getItem('access_token');
 
-    api
-      .get('/admin/messages', {
-        headers: {
-          Authorization: `bearer ${accessToken}`,
-        },
+    if (!accessToken) {
+      setError('Unauthorized: Please log in as an admin.');
+      setLoading(false);
+      return;
+    }
+
+    api.get('/admin/messages', {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    })
+      .then((res) => {
+        setQueries(res.data);
       })
-      .then((res) => setQueries(res.data))
       .catch((err) => {
         console.error('ERROR RESPONSE:', err.response);
-        setError('Failed to load queries.');
+        if (err.response?.status === 401) {
+          setError('Unauthorized: Invalid or expired token.');
+        } else {
+          setError('Failed to load queries.');
+        }
       })
       .finally(() => setLoading(false));
   }, []);
@@ -52,59 +63,64 @@ export default function QueriesPage() {
 
   return (
     <AdminLayout>
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">User Queries</h1>
-      <p className="text-sm text-gray-600 mb-4">
-        Explore all recent user questions submitted to the chatbot.
-      </p>
+      <section className="max-w-6xl mx-auto py-10 px-4">
+        <header className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-800">User Queries</h1>
+          <p className="text-sm text-gray-600">
+            Explore all recent user questions submitted to the chatbot.
+          </p>
+        </header>
 
-      <input
-        type="text"
-        placeholder="Search queries..."
-        value={filter}
-        onChange={(e) => setFilter(e.target.value)}
-        className="w-full md:w-80 border border-gray-300 rounded-md p-2 mb-6 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-      />
-
-      {error && <div className="mb-4 text-red-600 text-sm">{error}</div>}
-
-      {loading ? (
-        <p className="text-center text-gray-500">Loading queries...</p>
-      ) : (
-        <div className="overflow-x-auto bg-white shadow rounded-xl">
-          <table className="min-w-full text-sm">
-            <thead className="bg-gray-100 text-gray-600 uppercase text-xs">
-              <tr>
-                <th className="p-3 text-left">#</th>
-                <th className="p-3 text-left">Query</th>
-                <th className="p-3 text-left">Response</th>
-                <th className="p-3 text-left">Rating</th>
-                <th className="p-3 text-left">Comment</th>
-              </tr>
-            </thead>
-            <tbody>
-              {paginated.map((q) => (
-                <tr key={q.message_id} className="border-t hover:bg-gray-50">
-                  <td className="p-3 text-gray-500">{q.message_id}</td>
-                  <td className="p-3">{q.input}</td>
-                  <td className="p-3 text-gray-700">{q.response}</td>
-                  <td className="p-3 text-yellow-600">{q.feedback?.rating ?? '-'}</td>
-                  <td className="p-3 text-gray-500">{q.feedback?.comment ?? '-'}</td>
-                </tr>
-              ))}
-              {paginated.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="p-4 text-center text-gray-400">
-                    No queries found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+        <div className="mb-6 flex items-center justify-between">
+          <input
+            type="text"
+            placeholder="Search queries..."
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            className="w-full md:w-80 border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
         </div>
-      )}
 
-      {!loading && (
-        <>
+        {error && <div className="mb-4 text-red-600 text-sm">{error}</div>}
+
+        {loading ? (
+          <p className="text-center text-gray-500">Loading queries...</p>
+        ) : (
+          <div className="overflow-x-auto bg-white shadow rounded-xl">
+            <table className="min-w-full text-sm">
+              <thead className="bg-gray-100 text-gray-600 uppercase text-xs">
+                <tr>
+                  <th className="p-3 text-left">#</th>
+                  <th className="p-3 text-left">Query</th>
+                  <th className="p-3 text-left">Response</th>
+                  <th className="p-3 text-left">Rating</th>
+                  <th className="p-3 text-left">Comment</th>
+                </tr>
+              </thead>
+              <tbody>
+                {paginated.length > 0 ? (
+                  paginated.map((q) => (
+                    <tr key={q.message_id} className="border-t hover:bg-gray-50">
+                      <td className="p-3 text-gray-500">{q.message_id}</td>
+                      <td className="p-3">{q.input}</td>
+                      <td className="p-3 text-gray-700">{q.response}</td>
+                      <td className="p-3 text-yellow-600">{q.feedback?.rating ?? '-'}</td>
+                      <td className="p-3 text-gray-500">{q.feedback?.comment ?? '-'}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={5} className="p-4 text-center text-gray-400">
+                      No queries found.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {!loading && (
           <div className="mt-6 flex justify-center gap-2 flex-wrap">
             {[...Array(pageCount)].map((_, i) => (
               <button
@@ -120,12 +136,14 @@ export default function QueriesPage() {
               </button>
             ))}
           </div>
+        )}
 
+        {!loading && (
           <div className="text-sm text-gray-400 text-center mt-6">
             Showing {paginated.length} of {filtered.length} queries
           </div>
-        </>
-      )}
+        )}
+      </section>
     </AdminLayout>
   );
 }
