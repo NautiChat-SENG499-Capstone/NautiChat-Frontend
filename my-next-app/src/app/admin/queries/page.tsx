@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import AdminLayout from '@/components/AdminLayout';
 import api from '@/lib/api';
 
@@ -8,13 +9,10 @@ type Query = {
   message_id: number;
   input: string;
   response: string;
-  feedback: {
-    rating: number;
-    comment: string;
-  };
 };
 
 export default function QueriesPage() {
+  const pathname = usePathname();
   const [queries, setQueries] = useState<Query[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -23,7 +21,8 @@ export default function QueriesPage() {
   const perPage = 5;
 
   useEffect(() => {
-    const accessToken = sessionStorage.getItem('access_token');
+    setLoading(true);
+    const accessToken = localStorage.getItem('access_token');
 
     if (!accessToken) {
       setError('Unauthorized: Please log in as an admin.');
@@ -31,13 +30,19 @@ export default function QueriesPage() {
       return;
     }
 
-    api.get('/admin/messages', {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    })
+    api
+      .get('/admin/messages', {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      })
       .then((res) => {
-        setQueries(res.data);
+        const stripped = res.data.map((msg: any) => ({
+          message_id: msg.message_id,
+          input: msg.input,
+          response: msg.response,
+        }));
+        setQueries(stripped);
       })
       .catch((err) => {
         console.error('ERROR RESPONSE:', err.response);
@@ -48,7 +53,7 @@ export default function QueriesPage() {
         }
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [pathname]);
 
   useEffect(() => {
     setPage(1);
@@ -71,6 +76,7 @@ export default function QueriesPage() {
           </p>
         </header>
 
+        {/* Search bar */}
         <div className="mb-6 flex items-center justify-between">
           <input
             type="text"
@@ -90,11 +96,9 @@ export default function QueriesPage() {
             <table className="min-w-full text-sm">
               <thead className="bg-gray-100 text-gray-600 uppercase text-xs">
                 <tr>
-                  <th className="p-3 text-left">#</th>
+                  <th className="p-3 text-left">ID</th>
                   <th className="p-3 text-left">Query</th>
                   <th className="p-3 text-left">Response</th>
-                  <th className="p-3 text-left">Rating</th>
-                  <th className="p-3 text-left">Comment</th>
                 </tr>
               </thead>
               <tbody>
@@ -104,13 +108,11 @@ export default function QueriesPage() {
                       <td className="p-3 text-gray-500">{q.message_id}</td>
                       <td className="p-3">{q.input}</td>
                       <td className="p-3 text-gray-700">{q.response}</td>
-                      <td className="p-3 text-yellow-600">{q.feedback?.rating ?? '-'}</td>
-                      <td className="p-3 text-gray-500">{q.feedback?.comment ?? '-'}</td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={5} className="p-4 text-center text-gray-400">
+                    <td colSpan={3} className="p-4 text-center text-gray-400">
                       No queries found.
                     </td>
                   </tr>
@@ -120,7 +122,8 @@ export default function QueriesPage() {
           </div>
         )}
 
-        {!loading && (
+        {/* Pagination */}
+        {!loading && pageCount > 1 && (
           <div className="mt-6 flex justify-center gap-2 flex-wrap">
             {[...Array(pageCount)].map((_, i) => (
               <button
@@ -138,11 +141,9 @@ export default function QueriesPage() {
           </div>
         )}
 
-        {!loading && (
-          <div className="text-sm text-gray-400 text-center mt-6">
-            Showing {paginated.length} of {filtered.length} queries
-          </div>
-        )}
+        <div className="text-sm text-gray-400 text-center mt-6">
+          Showing {paginated.length} of {filtered.length} queries
+        </div>
       </section>
     </AdminLayout>
   );
