@@ -14,18 +14,19 @@ export default function RegisterForm() {
     password: "",
     confirmPassword: "",
     oncToken: "",
-  }) // This component will handle user registration and talk directly to FASTAPI backend
+  })
 
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
-  } // Updates the field in formData if a user types into a textbox
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
+
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match")
       return
@@ -46,15 +47,26 @@ export default function RegisterForm() {
         }),
       })
 
+      const contentType = res.headers.get("content-type")
+
       if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.detail || "Registration failed")
+        if (contentType && contentType.includes("application/json")) {
+          const data = await res.json()
+          throw new Error(data.detail || "Registration failed")
+        } else {
+          const text = await res.text()
+          throw new Error(text || "Registration failed with unknown error")
+        }
       }
 
-      const data = await res.json()
-      localStorage.setItem("token", data.access_token) // saves the access_token to localStrogage, the JWT so frontend can use it later to access protected routes like admin portal
+      const data = contentType && contentType.includes("application/json") ? await res.json() : null
 
-      router.push("/chat") // Redirect user to the /chat page
+      if (data?.access_token) {
+        localStorage.setItem("token", data.access_token)
+        router.push("/chat")
+      } else {
+        throw new Error("No access token returned")
+      }
     } catch (err: any) {
       setError(err.message)
     } finally {
