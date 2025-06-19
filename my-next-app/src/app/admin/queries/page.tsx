@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import AdminLayout from '@/components/AdminLayout';
 import api from '@/lib/api';
@@ -20,13 +20,19 @@ export default function QueriesPage() {
   const [filter, setFilter] = useState('');
   const perPage = 5;
 
-  useEffect(() => {
+  const isFetching = useRef(false);
+
+  const fetchQueries = () => {
+    if (isFetching.current) return;
+
+    isFetching.current = true;
     setLoading(true);
     const accessToken = localStorage.getItem('access_token');
 
     if (!accessToken) {
       setError('Unauthorized: Please log in as an admin.');
       setLoading(false);
+      isFetching.current = false;
       return;
     }
 
@@ -45,15 +51,34 @@ export default function QueriesPage() {
         setQueries(stripped);
       })
       .catch((err) => {
-        console.error('ERROR RESPONSE:', err.response);
+        console.error('ERROR RESPONSE:', err.response || err);
         if (err.response?.status === 401) {
           setError('Unauthorized: Invalid or expired token.');
         } else {
           setError('Failed to load queries.');
         }
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        isFetching.current = false;
+        setLoading(false);
+      });
+  };
+
+  useEffect(() => {
+    fetchQueries();
   }, [pathname]);
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchQueries();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () =>
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
 
   useEffect(() => {
     setPage(1);
@@ -76,7 +101,7 @@ export default function QueriesPage() {
           </p>
         </header>
 
-        {/* Search bar */}
+        {/* Filter Input */}
         <div className="mb-6 flex items-center justify-between">
           <input
             type="text"
@@ -87,8 +112,10 @@ export default function QueriesPage() {
           />
         </div>
 
+        {/* Error Message */}
         {error && <div className="mb-4 text-red-600 text-sm">{error}</div>}
 
+        {/* Table */}
         {loading ? (
           <p className="text-center text-gray-500">Loading queries...</p>
         ) : (
@@ -96,7 +123,7 @@ export default function QueriesPage() {
             <table className="min-w-full text-sm">
               <thead className="bg-gray-100 text-gray-600 uppercase text-xs">
                 <tr>
-                  <th className="p-3 text-left">ID</th>
+                  <th className="p-3 text-left">#</th>
                   <th className="p-3 text-left">Query</th>
                   <th className="p-3 text-left">Response</th>
                 </tr>
@@ -123,7 +150,7 @@ export default function QueriesPage() {
         )}
 
         {/* Pagination */}
-        {!loading && pageCount > 1 && (
+        {!loading && (
           <div className="mt-6 flex justify-center gap-2 flex-wrap">
             {[...Array(pageCount)].map((_, i) => (
               <button
@@ -141,9 +168,12 @@ export default function QueriesPage() {
           </div>
         )}
 
-        <div className="text-sm text-gray-400 text-center mt-6">
-          Showing {paginated.length} of {filtered.length} queries
-        </div>
+        {/* Footer */}
+        {!loading && (
+          <div className="text-sm text-gray-400 text-center mt-6">
+            Showing {paginated.length} of {filtered.length} queries
+          </div>
+        )}
       </section>
     </AdminLayout>
   );
