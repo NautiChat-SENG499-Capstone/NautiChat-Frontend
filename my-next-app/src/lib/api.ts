@@ -7,12 +7,11 @@ import type {
   CreateConversationResponse,
   MessageRequest,
   MessageResponse,
-  ConversationsResponse,
 } from "@/types/chat"
 
 // API configuration
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "https://nautichat-api-1050974581549.northamerica-northeast1.run.app"
+  process.env.NEXT_PUBLIC_API_URL
 
 // API client class
 export class ChatAPI {
@@ -126,6 +125,34 @@ export class ChatAPI {
     return null
   }
 
+  // Helper method to get user_id from token or localStorage
+  private getUserId(): string | null {
+    if (typeof window !== "undefined") {
+      // Try to get user_id from localStorage first
+      const userId = localStorage.getItem("user_id") || localStorage.getItem("userId")
+      if (userId) {
+        console.log("Found user_id in localStorage:", userId)
+        return userId
+      }
+
+      // If not found, try to decode from JWT token
+      const token = this.getAuthToken()
+      if (token) {
+        try {
+          const payload = JSON.parse(atob(token.split(".")[1]))
+          console.log("JWT payload:", payload)
+          const extractedUserId = payload.user_id || payload.sub || payload.id || null
+          console.log("Extracted user_id from token:", extractedUserId)
+          return extractedUserId
+        } catch (error) {
+          console.warn("Could not decode user_id from token:", error)
+        }
+      }
+    }
+    console.log("No user_id found")
+    return null
+  }
+
   // POST /llm/conversations - Create a new conversation
   async createConversation(title?: string): Promise<CreateConversationResponse> {
     try {
@@ -185,28 +212,60 @@ export class ChatAPI {
     }
   }
 
-  // GET /llm/conversations - Get all conversations
+  // GET /llm/conversations - Get all conversations for the current user
   async getConversations(): Promise<ApiConversation[]> {
     try {
-      console.log("Fetching all conversations...")
+      console.log("=== FETCHING CONVERSATIONS ===")
 
-      const response = await this.client.get<ConversationsResponse | ApiConversation[]>("/llm/conversations")
+      const userId = this.getUserId()
+      console.log("Current user_id for conversation fetch:", userId)
+
+      // Try the basic endpoint first
+      console.log("Trying basic /llm/conversations endpoint...")
+      const response = await this.client.get<any>("/llm/conversations")
+
+      console.log("Raw response type:", typeof response.data)
+      console.log("Raw response data:", response.data)
+      console.log("Is array?", Array.isArray(response.data))
 
       // Handle different response formats
+      let conversations: ApiConversation[] = []
+
       if (Array.isArray(response.data)) {
         // Direct array response
-        console.log("Received direct array response with", response.data.length, "conversations")
-        return response.data
-      } else if (response.data && "conversations" in response.data) {
-        // Wrapped response
-        console.log("Received wrapped response with", response.data.conversations.length, "conversations")
-        return response.data.conversations
-      } else {
-        // Fallback for unexpected format
-        console.warn("Unexpected response format:", response.data)
-        return []
+        console.log("Processing as direct array response")
+        conversations = response.data
+      } else if (response.data && typeof response.data === "object") {
+        // Check for various possible wrapper properties
+        if ("conversations" in response.data && Array.isArray(response.data.conversations)) {
+          console.log("Processing as wrapped response with 'conversations' property")
+          conversations = response.data.conversations
+        } else if ("data" in response.data && Array.isArray(response.data.data)) {
+          console.log("Processing as wrapped response with 'data' property")
+          conversations = response.data.data
+        } else if ("results" in response.data && Array.isArray(response.data.results)) {
+          console.log("Processing as wrapped response with 'results' property")
+          conversations = response.data.results
+        } else {
+          console.warn("Unknown response format, checking for array-like properties...")
+          // Try to find any array property
+          const keys = Object.keys(response.data)
+          for (const key of keys) {
+            if (Array.isArray(response.data[key])) {
+              console.log(`Found array property '${key}', using it as conversations`)
+              conversations = response.data[key]
+              break
+            }
+          }
+        }
       }
+
+      console.log(`Processed ${conversations.length} conversations`)
+      console.log("Sample conversation:", conversations[0])
+
+      return conversations
     } catch (error) {
+      console.error("=== CONVERSATION FETCH ERROR ===")
       if (axios.isAxiosError(error)) {
         if (error.response?.status === 401) {
           throw new Error("Authentication failed. Please log in again.")
@@ -247,29 +306,6 @@ export class ChatAPI {
     }
   }
 
-  // DELETE /llm/conversations/{conversation_id} - Delete a conversation (if supported)
-  async deleteConversation(conversationId: string): Promise<void> {
-    try {
-      console.log(`Deleting conversation: ${conversationId}`)
-
-      await this.client.delete(`/llm/conversations/${conversationId}`)
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        if (error.response?.status === 401) {
-          throw new Error("Authentication failed. Please log in again.")
-        }
-        if (error.code === "NETWORK_ERROR" || error.message === "Network Error") {
-          throw new Error(
-            "Unable to connect to the server. Please check if the API is running and CORS is configured properly.",
-          )
-        }
-        const errorDetail = error.response?.data?.detail || error.message
-        throw new Error(`Failed to delete conversation: ${errorDetail}`)
-      }
-      throw new Error("Failed to delete conversation: Unknown error")
-    }
-  }
-
   // Test connection to the API
   async testConnection(): Promise<boolean> {
     try {
@@ -306,7 +342,7 @@ export function convertApiMessage(apiMessage: ApiMessage): Message[] {
   // Add assistant message
   messages.push({
     id: `assistant-${apiMessage.message_id}`,
-    content: apiMessage.input,
+    content: apiMessage.response,
     role: "assistant",
     timestamp: new Date(), // API doesn't provide timestamp, use current time
   })
@@ -316,21 +352,29 @@ export function convertApiMessage(apiMessage: ApiMessage): Message[] {
 
 // Helper function to convert API conversation to local chat format
 export function convertApiConversation(apiConversation: ApiConversation) {
+  console.log("Converting API conversation:", apiConversation)
+
   // Flatten all messages from API format
   const allMessages: Message[] = []
 
-  if (apiConversation.messages) {
+  if (apiConversation.messages && Array.isArray(apiConversation.messages)) {
+    console.log(`Converting ${apiConversation.messages.length} messages for conversation ${apiConversation.conversation_id}`)
     apiConversation.messages.forEach((apiMessage) => {
       const convertedMessages = convertApiMessage(apiMessage)
       allMessages.push(...convertedMessages)
     })
+  } else {
+    console.log(`No messages found for conversation ${apiConversation.conversation_id}`)
   }
 
-  return {
-    id: apiConversation.id,
+  const convertedChat = {
+    id: apiConversation.conversation_id,
     title: apiConversation.title,
-    createdAt: new Date(apiConversation.created_at),
-    updatedAt: new Date(apiConversation.updated_at),
+    createdAt: new Date(),
+    updatedAt: new Date(),
     messages: allMessages,
   }
+
+  console.log("Converted chat:", convertedChat)
+  return convertedChat
 }

@@ -18,13 +18,14 @@ export function useChatAPI() {
       setError(null)
       setConnectionStatus("connecting")
 
-      console.log("Initializing app...")
+      console.log("=== INITIALIZING APP ===")
 
       // Test connection first
       const isConnected = await chatAPI.testConnection()
 
       if (isConnected) {
         setConnectionStatus("connected")
+        console.log("Connection successful, loading chats...")
         // Load conversations if connection is successful
         await loadChats()
       } else {
@@ -41,13 +42,15 @@ export function useChatAPI() {
     }
   }
 
-  // Load all conversations
+  // Load all conversations for the current user
   const loadChats = async () => {
     try {
+      console.log("=== LOADING CHATS ===")
       setError(null)
 
       const apiConversations = await chatAPI.getConversations()
-      console.log("Raw API conversations:", apiConversations)
+      console.log("Raw API conversations received:", apiConversations)
+      console.log("Number of conversations:", apiConversations?.length || 0)
 
       // Handle case where apiConversations might be undefined or null
       if (!apiConversations) {
@@ -57,17 +60,49 @@ export function useChatAPI() {
       }
 
       // Ensure it's an array
-      const conversationsArray = Array.isArray(apiConversations) ? apiConversations : []
-      const convertedChats = conversationsArray.map(convertApiConversation)
+      if (!Array.isArray(apiConversations)) {
+        console.error("API conversations is not an array:", typeof apiConversations, apiConversations)
+        setChats([])
+        return
+      }
+
+      // Convert conversations
+      const convertedChats: Chat[] = []
+
+      for (let i = 0; i < apiConversations.length; i++) {
+        const apiConversation = apiConversations[i]
+        console.log(`Processing conversation ${i + 1}/${apiConversations.length}:`, apiConversation)
+
+        try {
+          // Validate conversation structure
+          if (!apiConversation.conversation_id || !apiConversation.title) {
+            console.warn("Invalid conversation structure, skipping:", apiConversation)
+            continue
+          }
+
+          const convertedChat = convertApiConversation(apiConversation)
+          convertedChats.push(convertedChat)
+          console.log(`Successfully converted conversation ${apiConversation.conversation_id}`)
+        } catch (conversionError) {
+          console.error(`Failed to convert conversation ${apiConversation.conversation_id}:`, conversionError)
+        }
+      }
+
+      // Sort by updated date (newest first)
+      convertedChats.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
+
+      console.log(`=== SETTING ${convertedChats.length} CHATS ===`)
+      console.log("Final converted chats:", convertedChats)
+
       setChats(convertedChats)
-      console.log(`Loaded ${convertedChats.length} conversations`)
+      console.log(`Successfully loaded ${convertedChats.length} conversations`)
     } catch (err) {
+      console.error("=== LOAD CHATS ERROR ===")
       const errorMessage = err instanceof Error ? err.message : "Failed to load conversations"
       setError(errorMessage)
       console.error("Load conversations error:", err)
       // Set empty array on error to prevent undefined issues
       setChats([])
-      throw err
     }
   }
 
@@ -90,8 +125,8 @@ export function useChatAPI() {
       const newChat: Chat = {
         id: newConversation.conversation_id,
         title: newConversation.title,
-        createdAt: new Date(newConversation.created_at),
-        updatedAt: new Date(newConversation.updated_at),
+        createdAt: new Date(),
+        updatedAt: new Date(),
         messages: [
           {
             id: `user-${aiResponse.message_id}`,
@@ -122,17 +157,21 @@ export function useChatAPI() {
     }
   }
 
-  // Load a specific conversation
+  // Load a specific conversation with its messages
   const loadChat = async (chatId: string) => {
     try {
       setIsLoading(true)
       setError(null)
 
-      // Try to get the conversation from the API, fallback to local state
+      // Try to get the conversation from the API
       try {
         const apiConversation = await chatAPI.getConversation(chatId)
         const chat = convertApiConversation(apiConversation)
         setCurrentChat(chat)
+
+        // Update the chat in the list with loaded messages
+        setChats((prev) => prev.map((c) => (c.id === chatId ? chat : c)))
+
         return chat
       } catch (apiError) {
         // Fallback to local chat if API doesn't support individual conversation fetching
@@ -245,37 +284,17 @@ export function useChatAPI() {
     }
   }
 
-  // Delete a conversation
-  const deleteChat = async (chatId: string) => {
-    try {
-      setIsLoading(true)
-      setError(null)
-
-      // Try to delete from API, but continue even if it fails
-      try {
-        await chatAPI.deleteConversation(chatId)
-      } catch (apiError) {
-        console.warn("Failed to delete conversation from API, removing locally:", apiError)
-      }
-
-      setChats((prev: Chat[]) => prev.filter((chat) => chat.id !== chatId))
-      if (currentChat?.id === chatId) {
-        setCurrentChat(null)
-      }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to delete conversation"
-      setError(errorMessage)
-      console.error("Delete conversation error:", err)
-      throw err
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
   // Initialize app on mount
   useEffect(() => {
     initializeApp()
   }, [])
+
+  // Debug effect to log chats state changes
+  useEffect(() => {
+    console.log("=== CHATS STATE UPDATED ===")
+    console.log("Number of chats:", chats.length)
+    console.log("Chats:", chats)
+  }, [chats])
 
   return {
     chats,
@@ -287,7 +306,6 @@ export function useChatAPI() {
     createChat,
     loadChat,
     sendMessage,
-    deleteChat,
     setCurrentChat,
     initializeApp,
   }

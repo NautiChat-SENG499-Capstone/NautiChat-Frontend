@@ -18,7 +18,6 @@ export default function OceansChatBot() {
     createChat,
     loadChat,
     sendMessage,
-    deleteChat,
     setCurrentChat,
     initializeApp,
   } = useChatAPI()
@@ -51,14 +50,6 @@ export default function OceansChatBot() {
     }
   }
 
-  const handleDeleteChat = async (chatId: string) => {
-    try {
-      await deleteChat(chatId)
-    } catch (err) {
-      console.error("Failed to delete chat:", err)
-    }
-  }
-
   const handleRetryConnection = async () => {
     await initializeApp()
   }
@@ -78,7 +69,6 @@ export default function OceansChatBot() {
           currentChatId={currentChat?.id}
           onNewChat={handleNewChat}
           onSelectChat={handleSelectChat}
-          onDeleteChat={handleDeleteChat}
           isLoading={isLoading}
         />
       </div>

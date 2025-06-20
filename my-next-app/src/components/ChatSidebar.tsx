@@ -10,7 +10,6 @@ interface ChatSidebarProps {
   currentChatId?: string
   onNewChat: () => void
   onSelectChat: (chatId: string) => void
-  onDeleteChat: (chatId: string) => void
   isLoading?: boolean
 }
 
@@ -19,7 +18,6 @@ export function ChatSidebar({
   currentChatId,
   onNewChat,
   onSelectChat,
-  onDeleteChat,
   isLoading = false,
 }: ChatSidebarProps) {
   // Group chats by date
@@ -47,22 +45,11 @@ export function ChatSidebar({
       >
         {chat.title}
       </button>
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={(e) => {
-          e.stopPropagation()
-          onDeleteChat(chat.id)
-        }}
-        className="absolute right-1 top-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity text-white/70 hover:text-white hover:bg-white/20"
-      >
-        <Trash2 className="h-3 w-3" />
-      </Button>
     </div>
   )
 
   return (
-    <div className="w-64 bg-gradient-to-b from-teal-400 to-teal-500 text-white flex flex-col h-full">
+    <div className="w-64 bg-cyan-600 text-white flex flex-col h-full">
       {/* Fixed header section */}
       <div className="p-4 flex-shrink-0">
         <h2 className="text-xl font-semibold mb-4">Chats</h2>

@@ -32,7 +32,7 @@ export interface ApiMessage {
 }
 
 export interface ApiConversation {
-  id: string
+  conversation_id: string
   title: string
   created_at: string
   updated_at: string
