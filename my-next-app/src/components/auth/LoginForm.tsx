@@ -13,6 +13,7 @@ export default function LoginForm() {
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [guestLoading, setGuestLoading] = useState(false) // new state for sign in for guest
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -47,6 +48,13 @@ export default function LoginForm() {
     }
   }
 
+  const handleGuestLogin = () => {
+    setGuestLoading(true)
+    // Hardcoded guest token for now
+    localStorage.setItem("access_token", "guest-access-token")
+    router.push("/chat")
+  }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {error && <div className="text-red-500 text-sm">{error}</div>}
@@ -79,6 +87,16 @@ export default function LoginForm() {
 
       <Button type="submit" className="w-full h-12" disabled={loading}>
         {loading ? "Signing in..." : "Sign In"}
+      </Button>
+
+      <Button
+        type="button"
+        variant="secondary"
+        className="w-full h-12 transition-all duration-200 hover:bg-blue-100 hover:text-blue-700"
+        onClick={handleGuestLogin}
+        disabled={guestLoading}
+      >
+        {guestLoading ? "Continuing as Guest..." : "Continue as Guest"}
       </Button>
     </form>
   )
