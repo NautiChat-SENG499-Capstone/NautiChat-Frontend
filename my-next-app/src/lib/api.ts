@@ -380,3 +380,9 @@ export function convertApiConversation(apiConversation: ApiConversation) {
   console.log("Converted chat:", convertedChat)
   return convertedChat
 }
+
+const api = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
+});
+
+export default api;
