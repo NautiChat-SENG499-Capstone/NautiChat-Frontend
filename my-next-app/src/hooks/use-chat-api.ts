@@ -42,7 +42,7 @@ export function useChatAPI() {
     }
   }
 
-  // Load all conversations for the current user
+  // Load all conversations for the current user (just titles and IDs for sidebar)
   const loadChats = async () => {
     try {
       console.log("=== LOADING CHATS ===")
@@ -66,8 +66,8 @@ export function useChatAPI() {
         return
       }
 
-      // Convert conversations
-      const convertedChats: Chat[] = []
+      // Convert to simple chat objects (just for sidebar display)
+      const simplifiedChats: Chat[] = []
 
       for (let i = 0; i < apiConversations.length; i++) {
         const apiConversation = apiConversations[i]
@@ -80,22 +80,27 @@ export function useChatAPI() {
             continue
           }
 
-          const convertedChat = convertApiConversation(apiConversation)
-          convertedChats.push(convertedChat)
-          console.log(`Successfully converted conversation ${apiConversation.conversation_id}`)
+          // Create simplified chat object (no messages, just for sidebar)
+          const simplifiedChat: Chat = {
+            id: apiConversation.conversation_id,
+            title: apiConversation.title,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            messages: [], // Empty for now, will be loaded when user clicks
+          }
+
+          simplifiedChats.push(simplifiedChat)
+          console.log(`Successfully processed conversation ${apiConversation.conversation_id}`)
         } catch (conversionError) {
-          console.error(`Failed to convert conversation ${apiConversation.conversation_id}:`, conversionError)
+          console.error(`Failed to process conversation ${apiConversation.conversation_id}:`, conversionError)
         }
       }
 
-      // Sort by updated date (newest first)
-      convertedChats.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
+      console.log(`=== SETTING ${simplifiedChats.length} CHATS ===`)
+      console.log("Final simplified chats:", simplifiedChats)
 
-      console.log(`=== SETTING ${convertedChats.length} CHATS ===`)
-      console.log("Final converted chats:", convertedChats)
-
-      setChats(convertedChats)
-      console.log(`Successfully loaded ${convertedChats.length} conversations`)
+      setChats(simplifiedChats)
+      console.log(`Successfully loaded ${simplifiedChats.length} conversations`)
     } catch (err) {
       console.error("=== LOAD CHATS ERROR ===")
       const errorMessage = err instanceof Error ? err.message : "Failed to load conversations"
@@ -157,28 +162,39 @@ export function useChatAPI() {
     }
   }
 
-  // Load a specific conversation with its messages
+  // Load a specific conversation with its messages (when user clicks on it)
   const loadChat = async (chatId: string) => {
     try {
       setIsLoading(true)
       setError(null)
 
-      // Try to get the conversation from the API
+      console.log(`Loading full conversation: ${chatId}`)
+
+      // Check if we already have the full conversation loaded
+      const existingChat = chats.find((chat) => chat.id === chatId)
+      if (existingChat && existingChat.messages.length > 0) {
+        console.log("Chat already loaded with messages, using cached version")
+        setCurrentChat(existingChat)
+        return existingChat
+      }
+
+      // Try to get the full conversation from the API
       try {
         const apiConversation = await chatAPI.getConversation(chatId)
-        const chat = convertApiConversation(apiConversation)
-        setCurrentChat(chat)
+        const fullChat = convertApiConversation(apiConversation)
+        setCurrentChat(fullChat)
 
         // Update the chat in the list with loaded messages
-        setChats((prev) => prev.map((c) => (c.id === chatId ? chat : c)))
+        setChats((prev) => prev.map((c) => (c.id === chatId ? fullChat : c)))
 
-        return chat
+        console.log(`Loaded full conversation with ${fullChat.messages.length} messages`)
+        return fullChat
       } catch (apiError) {
-        // Fallback to local chat if API doesn't support individual conversation fetching
-        const localChat = chats.find((chat) => chat.id === chatId)
-        if (localChat) {
-          setCurrentChat(localChat)
-          return localChat
+        // If API doesn't support individual conversation fetching, use the simplified version
+        if (existingChat) {
+          console.log("API doesn't support individual conversation fetching, using simplified version")
+          setCurrentChat(existingChat)
+          return existingChat
         }
         throw new Error("Conversation not found")
       }

@@ -34,8 +34,6 @@ export interface ApiMessage {
 export interface ApiConversation {
   conversation_id: string
   title: string
-  created_at: string
-  updated_at: string
   messages?: ApiMessage[]
 }
 
@@ -47,8 +45,6 @@ export interface CreateConversationRequest {
 export interface CreateConversationResponse {
   conversation_id: string
   title: string
-  created_at: string
-  updated_at: string
 }
 
 export interface MessageRequest {

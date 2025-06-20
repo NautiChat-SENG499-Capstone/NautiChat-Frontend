@@ -11,7 +11,7 @@ import type {
 
 // API configuration
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL
+  process.env.NEXT_PUBLIC_API_URL || ""
 
 // API client class
 export class ChatAPI {
@@ -336,7 +336,7 @@ export function convertApiMessage(apiMessage: ApiMessage): Message[] {
     id: `user-${apiMessage.message_id}`,
     content: apiMessage.input,
     role: "user",
-    timestamp: new Date(), // API doesn't provide timestamp, use current time
+    timestamp: new Date(), // Use current time since API doesn't provide timestamps
   })
 
   // Add assistant message
@@ -344,7 +344,7 @@ export function convertApiMessage(apiMessage: ApiMessage): Message[] {
     id: `assistant-${apiMessage.message_id}`,
     content: apiMessage.response,
     role: "assistant",
-    timestamp: new Date(), // API doesn't provide timestamp, use current time
+    timestamp: new Date(), // Use current time since API doesn't provide timestamps
   })
 
   return messages
@@ -358,7 +358,9 @@ export function convertApiConversation(apiConversation: ApiConversation) {
   const allMessages: Message[] = []
 
   if (apiConversation.messages && Array.isArray(apiConversation.messages)) {
-    console.log(`Converting ${apiConversation.messages.length} messages for conversation ${apiConversation.conversation_id}`)
+    console.log(
+      `Converting ${apiConversation.messages.length} messages for conversation ${apiConversation.conversation_id}`,
+    )
     apiConversation.messages.forEach((apiMessage) => {
       const convertedMessages = convertApiMessage(apiMessage)
       allMessages.push(...convertedMessages)
@@ -370,8 +372,8 @@ export function convertApiConversation(apiConversation: ApiConversation) {
   const convertedChat = {
     id: apiConversation.conversation_id,
     title: apiConversation.title,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date(), // Use current time since API doesn't provide dates
+    updatedAt: new Date(), // Use current time since API doesn't provide dates
     messages: allMessages,
   }
 

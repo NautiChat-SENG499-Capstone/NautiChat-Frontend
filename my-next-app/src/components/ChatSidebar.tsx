@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Plus, Trash2 } from "lucide-react"
+import { Plus } from "lucide-react"
 import type { Chat } from "@/types/chat"
 
 interface ChatSidebarProps {
@@ -13,33 +13,12 @@ interface ChatSidebarProps {
   isLoading?: boolean
 }
 
-export function ChatSidebar({
-  chats,
-  currentChatId,
-  onNewChat,
-  onSelectChat,
-  isLoading = false,
-}: ChatSidebarProps) {
-  // Group chats by date
-  const groupChatsByDate = (chats: Chat[]) => {
-    const now = new Date()
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-    const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000)
-
-    const todayChats = chats.filter((chat) => chat.updatedAt >= today)
-    const yesterdayChats = chats.filter((chat) => chat.updatedAt >= yesterday && chat.updatedAt < today)
-    const olderChats = chats.filter((chat) => chat.updatedAt < yesterday)
-
-    return { todayChats, yesterdayChats, olderChats }
-  }
-
-  const { todayChats, yesterdayChats, olderChats } = groupChatsByDate(chats)
-
+export function ChatSidebar({ chats, currentChatId, onNewChat, onSelectChat, isLoading = false }: ChatSidebarProps) {
   const ChatItem = ({ chat }: { chat: Chat }) => (
-    <div key={`chat-item-${chat.id}`} className="group relative">
+    <div key={`chat-item-${chat.id}`}>
       <button
         onClick={() => onSelectChat(chat.id)}
-        className={`w-full text-left text-sm p-2 rounded transition-colors line-clamp-2 pr-8 ${
+        className={`w-full text-left text-sm p-2 rounded transition-colors line-clamp-2 ${
           currentChatId === chat.id ? "bg-white/20 text-white" : "hover:bg-white/10 text-white/90"
         }`}
       >
@@ -67,39 +46,10 @@ export function ChatSidebar({
       {/* Scrollable chat list */}
       <div className="flex-1 min-h-0">
         <ScrollArea className="h-full px-4">
-          <div className="space-y-4 pb-4">
-            {todayChats.length > 0 && (
-              <div key="today-section">
-                <h3 className="text-sm font-medium mb-2 opacity-90">Today</h3>
-                <div className="space-y-1">
-                  {todayChats.map((chat) => (
-                    <ChatItem key={`today-${chat.id}`} chat={chat} />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {yesterdayChats.length > 0 && (
-              <div key="yesterday-section">
-                <h3 className="text-sm font-medium mb-2 opacity-90">Yesterday</h3>
-                <div className="space-y-1">
-                  {yesterdayChats.map((chat) => (
-                    <ChatItem key={`yesterday-${chat.id}`} chat={chat} />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {olderChats.length > 0 && (
-              <div key="older-section">
-                <h3 className="text-sm font-medium mb-2 opacity-90">Older</h3>
-                <div className="space-y-1">
-                  {olderChats.map((chat) => (
-                    <ChatItem key={`older-${chat.id}`} chat={chat} />
-                  ))}
-                </div>
-              </div>
-            )}
+          <div className="space-y-1 pb-4">
+            {chats.map((chat) => (
+              <ChatItem key={chat.id} chat={chat} />
+            ))}
 
             {chats.length === 0 && !isLoading && (
               <div className="text-center text-white/70 text-sm py-8">No chats yet. Start a new conversation!</div>
