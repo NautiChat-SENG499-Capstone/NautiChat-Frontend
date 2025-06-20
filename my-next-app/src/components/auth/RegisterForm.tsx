@@ -62,7 +62,7 @@ export default function RegisterForm() {
       const data = contentType && contentType.includes("application/json") ? await res.json() : null
 
       if (data?.access_token) {
-        localStorage.setItem("token", data.access_token)
+        localStorage.setItem("access_token", data.access_token) // <-- unify key name
         router.push("/chat")
       } else {
         throw new Error("No access token returned")
