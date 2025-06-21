@@ -32,7 +32,7 @@ export function ChatInput({ placeholder = "Ask anything ...", onSendMessage, dis
   }
 
   return (
-    <div className="p-6 border-t bg-white">
+    <div className="flex-shrink-0 p-6 border-t bg-white">
       <div className="max-w-4xl mx-auto">
         <form onSubmit={handleSubmit} className="relative">
           <Input

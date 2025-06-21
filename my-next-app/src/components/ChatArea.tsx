@@ -1,7 +1,7 @@
 "use client"
 
 import { ScrollArea } from "@/components/ui/scroll-area"
-import type { Message } from "../app/types/chat"
+import type { Message } from "@/types/chat"
 import { useEffect, useRef } from "react"
 
 interface ChatAreaProps {
@@ -30,7 +30,7 @@ export function ChatArea({
   // Show welcome screen if no messages
   if (messages.length === 0) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8">
+      <div className="flex-1 flex flex-col items-center justify-center p-8 min-h-0">
         <div className="max-w-2xl w-full text-center space-y-8">
           <h2 className="text-4xl font-semibold text-gray-800">{title}</h2>
           <div className="space-y-2">
@@ -42,39 +42,41 @@ export function ChatArea({
     )
   }
 
-  // Show chat messages
+  // Show chat messages with proper scrolling
   return (
-    <div className="flex-1 flex flex-col">
-      <ScrollArea ref={scrollAreaRef} className="flex-1 p-4">
-        <div className="max-w-1xl mx-auto space-y-4">
-          {messages.map((message) => (
-            <div key={message.id} className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
-              <div
-                className={`max-w-[70%] rounded-2xl px-4 py-3 ${
-                  message.role === "user"
-                    ? "bg-blue-600 text-white rounded-br-md"
-                    : "bg-gray-200 text-gray-800 rounded-bl-md"
-                } ${message.content === "Processing" ? "animate-pulse" : ""}`}
-              >
-                <p className="text-sm leading-relaxed">
-                  {message.content}
-                  {message.content === "Processing" && (
-                    <span className="inline-block ml-1">
-                      <span className="animate-pulse">.</span>
-                      <span className="animate-pulse animation-delay-200">.</span>
-                      <span className="animate-pulse animation-delay-400">.</span>
-                    </span>
-                  )}
-                </p>
-                <p className={`text-xs mt-1 ${message.role === "user" ? "text-blue-100" : "text-gray-500"}`}>
-                  {message.timestamp.toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </p>
+    <div className="flex-1 flex flex-col min-h-0">
+      <ScrollArea ref={scrollAreaRef} className="flex-1 min-h-0">
+        <div className="p-4">
+          <div className="max-w-1xl mx-auto space-y-4">
+            {messages.map((message) => (
+              <div key={message.id} className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
+                <div
+                  className={`max-w-[70%] rounded-2xl px-4 py-3 ${
+                    message.role === "user"
+                      ? "bg-blue-600 text-white rounded-br-md"
+                      : "bg-gray-200 text-gray-800 rounded-bl-md"
+                  } ${message.content === "Processing..." ? "animate-pulse" : ""}`}
+                >
+                  <p className="text-sm leading-relaxed">
+                    {message.content}
+                    {message.content === "Processing..." && (
+                      <span className="inline-block ml-1">
+                        <span className="animate-pulse">.</span>
+                        <span className="animate-pulse animation-delay-200">.</span>
+                        <span className="animate-pulse animation-delay-400">.</span>
+                      </span>
+                    )}
+                  </p>
+                  <p className={`text-xs mt-1 ${message.role === "user" ? "text-blue-100" : "text-gray-500"}`}>
+                    {message.timestamp.toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </p>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </ScrollArea>
     </div>
