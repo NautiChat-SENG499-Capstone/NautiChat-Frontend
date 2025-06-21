@@ -138,12 +138,15 @@ export function useChatAPI() {
             content: aiResponse.input,
             role: "user",
             timestamp: new Date(),
+            messageId: aiResponse.message_id.toString(),
           },
           {
-            id: `assistant-${aiResponse.message_id}`,
+            id: `${aiResponse.message_id}`,
             content: aiResponse.response,
             role: "assistant",
             timestamp: new Date(),
+            messageId: aiResponse.message_id.toString(),
+            feedback: aiResponse.feedback,
           },
         ],
       }
@@ -251,13 +254,16 @@ export function useChatAPI() {
         content: aiResponse.input,
         role: "user",
         timestamp: new Date(),
+        messageId: aiResponse.message_id.toString(),
       }
 
       const assistantMessage: Message = {
-        id: `assistant-${aiResponse.message_id}`,
+        id: `${aiResponse.message_id}`,
         content: aiResponse.response,
         role: "assistant",
         timestamp: new Date(),
+        messageId: aiResponse.message_id.toString(),
+        feedback: aiResponse.feedback,
       }
 
       // Update chat with real messages
@@ -300,6 +306,56 @@ export function useChatAPI() {
     }
   }
 
+  // Submit feedback for a message
+  const submitFeedback = async (messageId: string, rating: number, comment?: string) => {
+    try {
+      await chatAPI.submitFeedback(messageId, rating, comment)
+
+      // Update the message with feedback in current chat
+      setCurrentChat((prev: Chat | null) =>
+        prev
+          ? {
+              ...prev,
+              messages: prev.messages.map((message) =>
+                message.messageId === messageId
+                  ? {
+                      ...message,
+                      feedback: { rating, comment: comment || "" },
+                    }
+                  : message,
+              ),
+            }
+          : null,
+      )
+
+      // Update the message in chats list as well
+      setChats((prev: Chat[]) =>
+        prev.map((chat) =>
+          chat.id === currentChat?.id
+            ? {
+                ...chat,
+                messages: chat.messages.map((message) =>
+                  message.messageId === messageId
+                    ? {
+                        ...message,
+                        feedback: { rating, comment: comment || "" },
+                      }
+                    : message,
+                ),
+              }
+            : chat,
+        ),
+      )
+
+      console.log(`Feedback submitted for message ${messageId}: rating=${rating}`)
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to submit feedback"
+      setError(errorMessage)
+      console.error("Submit feedback error:", err)
+      throw err
+    }
+  }
+
   // Initialize app on mount
   useEffect(() => {
     initializeApp()
@@ -322,6 +378,7 @@ export function useChatAPI() {
     createChat,
     loadChat,
     sendMessage,
+    submitFeedback,
     setCurrentChat,
     initializeApp,
   }
