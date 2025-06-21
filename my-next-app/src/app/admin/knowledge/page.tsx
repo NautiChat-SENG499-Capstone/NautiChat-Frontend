@@ -21,7 +21,7 @@ export default function KnowledgeBasePage() {
       <div className="flex flex-wrap gap-4 mb-8">
         <button
           onClick={() => setActiveTab('qa')}
-          className={`px-4 py-2 rounded-md text-sm font-medium tsransition ${
+          className={`px-4 py-2 rounded-md text-sm font-medium transition ${
             activeTab === 'qa'
               ? 'bg-blue-600 text-white'
               : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-100'
