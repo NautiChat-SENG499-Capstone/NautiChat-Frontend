@@ -120,32 +120,33 @@ export default function QueriesPage() {
           <p className="text-center text-gray-500">Loading queries...</p>
         ) : (
           <div className="overflow-x-auto bg-white shadow rounded-xl">
-            <table className="min-w-full text-sm">
-              <thead className="bg-gray-100 text-gray-600 uppercase text-xs">
-                <tr>
-                  <th className="p-3 text-left">#</th>
-                  <th className="p-3 text-left">Query</th>
-                  <th className="p-3 text-left">Response</th>
-                </tr>
-              </thead>
-              <tbody>
-                {paginated.length > 0 ? (
-                  paginated.map((q) => (
-                    <tr key={q.message_id} className="border-t hover:bg-gray-50">
-                      <td className="p-3 text-gray-500">{q.message_id}</td>
-                      <td className="p-3">{q.input}</td>
-                      <td className="p-3 text-gray-700">{q.response}</td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={3} className="p-4 text-center text-gray-400">
-                      No queries found.
-                    </td>
+            <table className="min-w-full text-sm table-fixed">
+            <thead className="bg-gray-100 text-gray-600 uppercase text-xs">
+              <tr>
+                <th className="w-12 p-3 text-left">#</th>
+                <th className="w-1/3 p-3 text-left">Query</th>
+                <th className="w-2/3 p-3 text-left">Response</th>
+              </tr>
+            </thead>
+            <tbody>
+              {paginated.length > 0 ? (
+                paginated.map((q) => (
+                  <tr key={q.message_id} className="border-t hover:bg-gray-50">
+                    <td className="p-3 text-gray-500">{q.message_id}</td>
+                    <td className="p-3 truncate" title={q.input}>{q.input}</td>
+                    <td className="p-3 truncate" title={q.response}>{q.response}</td>
                   </tr>
-                )}
-              </tbody>
-            </table>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={3} className="p-4 text-center text-gray-400">
+                    No queries found.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+
           </div>
         )}
 
