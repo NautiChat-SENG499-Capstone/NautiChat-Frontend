@@ -16,9 +16,7 @@ export default function QueriesPage() {
   const [queries, setQueries] = useState<Query[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [page, setPage] = useState(1);
   const [filter, setFilter] = useState('');
-  const perPage = 5;
 
   const isFetching = useRef(false);
 
@@ -80,21 +78,15 @@ export default function QueriesPage() {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, []);
 
-  useEffect(() => {
-    setPage(1);
-  }, [filter]);
-
   const filtered = queries.filter((q) =>
     q.input.toLowerCase().includes(filter.toLowerCase())
   );
-  const pageCount = Math.ceil(filtered.length / perPage);
-  const start = (page - 1) * perPage;
-  const paginated = filtered.slice(start, start + perPage);
 
   return (
     <AdminLayout>
-      <section className="max-w-6xl mx-auto py-10 px-4">
-        <header className="mb-6">
+      <section className="w-full max-w-screen-xl mx-auto py-4 px-6">
+          <div className="ml-[-33px]">
+        <header className="mb-2">
           <h1 className="text-2xl font-bold text-gray-800">User Queries</h1>
           <p className="text-sm text-gray-600">
             Explore all recent user questions submitted to the chatbot.
@@ -102,7 +94,7 @@ export default function QueriesPage() {
         </header>
 
         {/* Filter Input */}
-        <div className="mb-6 flex items-center justify-between">
+        <div className="mb-3 flex items-center justify-between">
           <input
             type="text"
             placeholder="Search queries..."
@@ -117,64 +109,54 @@ export default function QueriesPage() {
 
         {/* Table */}
         {loading ? (
-          <p className="text-center text-gray-500">Loading queries...</p>
-        ) : (
-          <div className="overflow-x-auto bg-white shadow rounded-xl">
-            <table className="min-w-full text-sm table-fixed">
-            <thead className="bg-gray-100 text-gray-600 uppercase text-xs">
-              <tr>
-                <th className="w-12 p-3 text-left">#</th>
-                <th className="w-1/3 p-3 text-left">Query</th>
-                <th className="w-2/3 p-3 text-left">Response</th>
-              </tr>
-            </thead>
-            <tbody>
-              {paginated.length > 0 ? (
-                paginated.map((q) => (
-                  <tr key={q.message_id} className="border-t hover:bg-gray-50">
-                    <td className="p-3 text-gray-500">{q.message_id}</td>
-                    <td className="p-3 truncate" title={q.input}>{q.input}</td>
-                    <td className="p-3 truncate" title={q.response}>{q.response}</td>
+            <p className="text-center text-gray-500">Loading queries...</p>
+          ) : (
+            <div className="w-[1300px] mx-auto bg-white shadow rounded-xl">
+              <div className="max-h-[500px] overflow-y-auto overflow-x-auto">
+                <table className="w-full text-sm table-fixed">
+                  <thead className="bg-gray-100 text-gray-600 uppercase text-xs">
+                    <tr>
+                      <th className="w-12 p-3 text-left">#</th>
+                      <th className="w-1/3 p-3 text-left">Query</th>
+                      <th className="w-2/3 p-3 text-left pl-[87px]">Response</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                {filtered.length > 0 ? (
+                  filtered.map((q) => (
+                    <tr key={q.message_id} className="border-t hover:bg-gray-50">
+                      <td className="p-3 text-gray-500">{q.message_id}</td>
+                      <td className="p-3 truncate" title={q.input}>
+                        {q.input}
+                      </td>
+                      <td className="p-3 truncate text-gray-800 pl-[87px]" title={q.response}>
+                        {q.response.length > 100 ? q.response.slice(0, 100) + '...' : q.response}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={3} className="p-4 text-center text-gray-400">
+                      No queries found.
+                    </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={3} className="p-4 text-center text-gray-400">
-                    No queries found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
+                )}
+              </tbody>
+
+
           </table>
-
           </div>
-        )}
-
-        {/* Pagination */}
-        {!loading && (
-          <div className="mt-6 flex justify-center gap-2 flex-wrap">
-            {[...Array(pageCount)].map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setPage(i + 1)}
-                className={`px-3 py-1 rounded-md border ${
-                  page === i + 1
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-white text-gray-700 hover:bg-gray-100'
-                }`}
-              >
-                {i + 1}
-              </button>
-            ))}
           </div>
         )}
 
         {/* Footer */}
         {!loading && (
-          <div className="text-sm text-gray-400 text-center mt-6">
-            Showing {paginated.length} of {filtered.length} queries
-          </div>
+            <div className="text-sm text-gray-400 text-center mt-3">
+              Showing all {filtered.length} queries
+            </div>
+
         )}
+          </div>
       </section>
     </AdminLayout>
   );
