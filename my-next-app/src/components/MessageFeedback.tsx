@@ -20,7 +20,7 @@ export function MessageFeedback({ messageId, onFeedback, disabled = false, curre
 
     try {
       setIsSubmitting(true)
-      const comment = rating === 1 ? "thumbs up" : "thumbs down"
+      const comment = rating === 2 ? "thumbs up" : "thumbs down"
       await onFeedback(messageId, rating, comment)
       setFeedback(rating)
     } catch (error) {
@@ -47,7 +47,7 @@ export function MessageFeedback({ messageId, onFeedback, disabled = false, curre
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => handleFeedback(1)}
+          onClick={() => handleFeedback(2)}
           disabled={isSubmitting || disabled}
           className="h-8 w-8 p-0 hover:bg-green-50 hover:text-green-600"
         >
@@ -56,7 +56,7 @@ export function MessageFeedback({ messageId, onFeedback, disabled = false, curre
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => handleFeedback(0)}
+          onClick={() => handleFeedback(1)}
           disabled={isSubmitting || disabled}
           className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600"
         >
