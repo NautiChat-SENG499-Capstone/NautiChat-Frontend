@@ -48,7 +48,6 @@ export default function FeedbackPage() {
             response: msg.response,
             rating: msg.feedback.rating,
             comment: msg.feedback.comment,
-            date: new Date(msg.timestamp || msg.created_at || '').toLocaleDateString(),
           }));
         setFeedback(entries);
       })
@@ -121,7 +120,6 @@ export default function FeedbackPage() {
                   <th className="p-3 text-left">Response</th>
                   <th className="p-3 text-left">Rating</th>
                   <th className="p-3 text-left">Comment</th>
-                  <th className="p-3 text-left">Date</th>
                 </tr>
               </thead>
               <tbody>
@@ -132,7 +130,6 @@ export default function FeedbackPage() {
                       <td className="p-3">{f.response}</td>
                       <td className="p-3">{f.rating}</td>
                       <td className="p-3">{f.comment}</td>
-                      <td className="p-3 text-gray-500">{f.date}</td>
                     </tr>
                   ))
                 ) : (
