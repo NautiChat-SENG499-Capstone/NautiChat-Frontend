@@ -1,74 +1,100 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import TopNav from '@/components/TopNav';
+import { useEffect, useRef, useState } from 'react';
+import { usePathname } from 'next/navigation';
+import AdminLayout from '@/components/AdminLayout';
 import api from '@/lib/api';
 
 type Query = {
   message_id: number;
   input: string;
   response: string;
-  feedback: {
-    rating: number;
-    comment: string;
-  };
 };
 
 export default function QueriesPage() {
+  const pathname = usePathname();
   const [queries, setQueries] = useState<Query[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [page, setPage] = useState(1);
   const [filter, setFilter] = useState('');
-  const perPage = 5;
 
-  useEffect(() => {
-    console.log('Base URL:', process.env.NEXT_PUBLIC_API_URL);
+  const isFetching = useRef(false);
 
+  const fetchQueries = () => {
+    if (isFetching.current) return;
+
+    isFetching.current = true;
+    setLoading(true);
     const accessToken = localStorage.getItem('access_token');
-    console.log('Access Token:', accessToken);
 
-    api.get('/admin/messages', {
-      headers: {
-        Authorization: `bearer ${accessToken}`,
-      },
-    })
+    if (!accessToken) {
+      setError('Unauthorized: Please log in as an admin.');
+      setLoading(false);
+      isFetching.current = false;
+      return;
+    }
+
+    api
+      .get('/admin/messages', {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      })
       .then((res) => {
-        setQueries(res.data);
+        const stripped = res.data.map((msg: any) => ({
+          message_id: msg.message_id,
+          input: msg.input,
+          response: msg.response,
+        }));
+        setQueries(stripped);
       })
       .catch((err) => {
-        console.error('ERROR RESPONSE:', err.response);
-        setError('Failed to load queries.');
+        console.error('ERROR RESPONSE:', err.response || err);
+        if (err.response?.status === 401) {
+          setError('Unauthorized: Invalid or expired token.');
+        } else {
+          setError('Failed to load queries.');
+        }
       })
-      .finally(() => setLoading(false));
-  }, []);
-
-
+      .finally(() => {
+        isFetching.current = false;
+        setLoading(false);
+      });
+  };
 
   useEffect(() => {
-    setPage(1); 
-  }, [filter]);
+    fetchQueries();
+  }, [pathname]);
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchQueries();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () =>
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
 
   const filtered = queries.filter((q) =>
     q.input.toLowerCase().includes(filter.toLowerCase())
   );
-  const pageCount = Math.ceil(filtered.length / perPage);
-  const start = (page - 1) * perPage;
-  const paginated = filtered.slice(start, start + perPage);
 
   return (
-    <main className="min-h-screen bg-gray-50">
-      <TopNav />
-      <section className="max-w-6xl mx-auto py-10 px-4">
-        <header className="mb-6">
+    <AdminLayout>
+      <section className="w-full max-w-screen-xl mx-auto py-4 px-6">
+          <div className="ml-[-33px]">
+        <header className="mb-2">
           <h1 className="text-2xl font-bold text-gray-800">User Queries</h1>
           <p className="text-sm text-gray-600">
             Explore all recent user questions submitted to the chatbot.
           </p>
         </header>
 
-        {/* Search Bar */}
-        <div className="mb-6 flex items-center justify-between">
+        {/* Filter Input */}
+        <div className="mb-3 flex items-center justify-between">
           <input
             type="text"
             placeholder="Search queries..."
@@ -81,70 +107,57 @@ export default function QueriesPage() {
         {/* Error Message */}
         {error && <div className="mb-4 text-red-600 text-sm">{error}</div>}
 
-        {/* Loading State */}
+        {/* Table */}
         {loading ? (
-          <p className="text-center text-gray-500">Loading queries...</p>
-        ) : (
-          <div className="overflow-x-auto bg-white shadow rounded-xl">
-            <table className="min-w-full text-sm">
-              <thead className="bg-gray-100 text-gray-600 uppercase text-xs">
-                <tr>
-                  <th className="p-3 text-left">#</th>
-                  <th className="p-3 text-left">Query</th>
-                  <th className="p-3 text-left">Response</th>
-                  <th className="p-3 text-left">Rating</th>
-                  <th className="p-3 text-left">Comment</th>
-                </tr>
-              </thead>
-              <tbody>
-                {paginated.length > 0 ? (
-                  paginated.map((q) => (
+            <p className="text-center text-gray-500">Loading queries...</p>
+          ) : (
+            <div className="w-[1300px] mx-auto bg-white shadow rounded-xl">
+              <div className="max-h-[500px] overflow-y-auto overflow-x-auto">
+                <table className="w-full text-sm table-fixed">
+                  <thead className="bg-gray-100 text-gray-600 uppercase text-xs">
+                    <tr>
+                      <th className="w-12 p-3 text-left">#</th>
+                      <th className="w-1/3 p-3 text-left">Query</th>
+                      <th className="w-2/3 p-3 text-left pl-[87px]">Response</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                {filtered.length > 0 ? (
+                  filtered.map((q) => (
                     <tr key={q.message_id} className="border-t hover:bg-gray-50">
                       <td className="p-3 text-gray-500">{q.message_id}</td>
-                      <td className="p-3">{q.input}</td>
-                      <td className="p-3 text-gray-700">{q.response}</td>
-                      <td className="p-3 text-yellow-600">{q.feedback?.rating ?? '-'}</td>
-                      <td className="p-3 text-gray-500">{q.feedback?.comment ?? '-'}</td>
+                      <td className="p-3 truncate" title={q.input}>
+                        {q.input}
+                      </td>
+                      <td className="p-3 truncate text-gray-800 pl-[87px]" title={q.response}>
+                        {q.response.length > 100 ? q.response.slice(0, 100) + '...' : q.response}
+                      </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={5} className="p-4 text-center text-gray-400">
+                    <td colSpan={3} className="p-4 text-center text-gray-400">
                       No queries found.
                     </td>
                   </tr>
                 )}
               </tbody>
-            </table>
+
+
+          </table>
+          </div>
           </div>
         )}
 
-        {/* Pagination */}
+        {/* Footer */}
         {!loading && (
-          <div className="mt-6 flex justify-center gap-2 flex-wrap">
-            {[...Array(pageCount)].map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setPage(i + 1)}
-                className={`px-3 py-1 rounded-md border ${
-                  page === i + 1
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-white text-gray-700 hover:bg-gray-100'
-                }`}
-              >
-                {i + 1}
-              </button>
-            ))}
-          </div>
-        )}
+            <div className="text-sm text-gray-400 text-center mt-3">
+              Showing all {filtered.length} queries
+            </div>
 
-        {/* Footer note */}
-        {!loading && (
-          <div className="text-sm text-gray-400 text-center mt-6">
-            Showing {paginated.length} of {filtered.length} queries
-          </div>
         )}
+          </div>
       </section>
-    </main>
+    </AdminLayout>
   );
 }
