@@ -18,6 +18,7 @@ export default function OceansChatBot() {
     createChat,
     loadChat,
     sendMessage,
+    submitFeedback,
     setCurrentChat,
     initializeApp,
   } = useChatAPI()
@@ -47,6 +48,14 @@ export default function OceansChatBot() {
       } catch (err) {
         console.error("Failed to send message:", err)
       }
+    }
+  }
+
+  const handleFeedback = async (messageId: string, rating: number, comment?: string) => {
+    try {
+      await submitFeedback(messageId, rating, comment)
+    } catch (err) {
+      console.error("Failed to submit feedback:", err)
     }
   }
 
@@ -97,6 +106,7 @@ export default function OceansChatBot() {
           messages={currentChat?.messages || []}
           title="What do you want to know?"
           example="What is the average temperature in Cambridge bay?"
+          onFeedback={handleFeedback}
         />
 
         {/* Fixed input at bottom */}

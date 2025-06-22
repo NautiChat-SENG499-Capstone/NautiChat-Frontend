@@ -7,6 +7,7 @@ import type {
   CreateConversationResponse,
   MessageRequest,
   MessageResponse,
+  FeedbackRequest,
 } from "@/types/chat"
 
 // API configuration
@@ -212,6 +213,38 @@ export class ChatAPI {
     }
   }
 
+  // POST /llm/messages/{message_id}/feedback - Submit feedback for a message
+  async submitFeedback(messageId: string, rating: number, comment?: string): Promise<void> {
+    try {
+      console.log(`Submitting feedback for message ${messageId}: rating=${rating}`)
+
+      const payload: FeedbackRequest = {
+        rating,
+        comment: comment || "",
+      }
+
+      await this.client.patch(`/llm/messages/${messageId}/feedback`, payload)
+      console.log("Feedback submitted successfully")
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 401) {
+          throw new Error("Authentication failed. Please log in again.")
+        }
+        if (error.response?.status === 404) {
+          throw new Error("Message not found.")
+        }
+        if (error.code === "NETWORK_ERROR" || error.message === "Network Error") {
+          throw new Error(
+            "Unable to connect to the server. Please check if the API is running and CORS is configured properly.",
+          )
+        }
+        const errorDetail = error.response?.data?.detail || error.message
+        throw new Error(`Failed to submit feedback: ${errorDetail}`)
+      }
+      throw new Error("Failed to submit feedback: Unknown error")
+    }
+  }
+
   // GET /llm/conversations - Get all conversations for the current user
   async getConversations(): Promise<ApiConversation[]> {
     try {
@@ -306,17 +339,47 @@ export class ChatAPI {
     }
   }
 
-  // Test connection to the API
+  // GET /health - Health check endpoint
+  async healthCheck(): Promise<boolean> {
+    try {
+      console.log("Checking API health...")
+
+      const response = await this.client.get<{ status: string }>("/health")
+
+      console.log("Health check response:", response.data)
+
+      // Check if the response indicates the API is healthy
+      const isHealthy = response.data && response.data.status === "ok"
+
+      if (isHealthy) {
+        console.log("API health check passed")
+      } else {
+        console.warn("API health check failed - unexpected response:", response.data)
+      }
+
+      return isHealthy
+    } catch (error) {
+      console.error("API health check failed:", error)
+      return false
+    }
+  }
+
+  // Test connection to the API using the health endpoint
   async testConnection(): Promise<boolean> {
     try {
-      console.log("Testing API connection...")
+      console.log("Testing API connection using health endpoint...")
 
-      // Try to fetch conversations as a connection test
-      await this.client.get("/llm/conversations")
-      console.log("API connection successful")
-      return true
+      const isHealthy = await this.healthCheck()
+
+      if (isHealthy) {
+        console.log("API connection test successful")
+      } else {
+        console.error("API connection test failed - health check returned unhealthy status")
+      }
+
+      return isHealthy
     } catch (error) {
-      console.error("API connection failed:", error)
+      console.error("API connection test failed:", error)
       return false
     }
   }
@@ -337,14 +400,17 @@ export function convertApiMessage(apiMessage: ApiMessage): Message[] {
     content: apiMessage.input,
     role: "user",
     timestamp: new Date(), // Use current time since API doesn't provide timestamps
+    messageId: apiMessage.message_id.toString(),
   })
 
   // Add assistant message
   messages.push({
-    id: `assistant-${apiMessage.message_id}`,
+    id: `${apiMessage.message_id}`,
     content: apiMessage.response,
     role: "assistant",
     timestamp: new Date(), // Use current time since API doesn't provide timestamps
+    messageId: apiMessage.message_id.toString(),
+    feedback: apiMessage.feedback,
   })
 
   return messages
@@ -380,6 +446,7 @@ export function convertApiConversation(apiConversation: ApiConversation) {
   console.log("Converted chat:", convertedChat)
   return convertedChat
 }
+
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,

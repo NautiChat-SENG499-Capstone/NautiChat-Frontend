@@ -11,7 +11,14 @@ export function ChatHeader() {
     <div className="bg-sky-950 text-white p-6">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-4">
+            <a
+            href="https://www.oceannetworks.ca"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-16 h-16 bg-white rounded flex items-center justify-center hover:bg-gray-50 transition-colors cursor-pointer"
+          >
             <Image src="/ONC_Primary_Pantone.png" alt="Logo" width={100} height={55} />
+          </a>
         </div>
         
          <div className="text-center">

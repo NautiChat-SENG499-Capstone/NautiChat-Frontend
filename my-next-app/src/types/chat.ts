@@ -3,6 +3,11 @@ export interface Message {
   content: string
   role: "user" | "assistant"
   timestamp: Date
+  messageId?: string
+  feedback?: {
+    rating: number
+    comment: string
+  }
 }
 
 export interface Chat {
@@ -62,6 +67,11 @@ export interface MessageResponse {
     rating: number
     comment: string
   }
+}
+
+export interface FeedbackRequest {
+  rating: number
+  comment: string
 }
 
 export interface ConversationsResponse {
