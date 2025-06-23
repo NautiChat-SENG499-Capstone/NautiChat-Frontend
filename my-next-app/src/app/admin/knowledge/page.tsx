@@ -1,7 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-import { useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import AdminLayout from '@/components/AdminLayout';
 
 
@@ -11,6 +10,19 @@ export default function KnowledgeBasePage() {
   const [activeTab, setActiveTab] = useState<'qa' | 'upload' | 'view'>('qa');
   const [uploadFiles, setUploadFiles] = useState<FileList | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [knowledgeEntries, setKnowledgeEntries] = useState<{ name: string, file: File }[]>([]);
+  const [popoverVisible, setPopoverVisible] = useState(false);
+  const [popoverPosition, setPopoverPosition] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  useEffect(() => {
+    const handleClickOutside = () => {
+      if (popoverVisible) setPopoverVisible(false);
+    };
+    window.addEventListener('click', handleClickOutside);
+    return () => window.removeEventListener('click', handleClickOutside);}, [popoverVisible]);
+
+
 
 
   return (
@@ -51,35 +63,35 @@ export default function KnowledgeBasePage() {
         </button>
       </div>
 
- {/* Content */}
-<div className="bg-white shadow rounded-xl p-6">
-  {activeTab === 'qa' && (
-    <form className="space-y-4">
-      <h2 className="text-lg font-semibold text-gray-700">Add New Question & Answer</h2>
-      <div>
-        <label className="block text-sm font-medium text-gray-600">Question</label>
-        <input
-          type="text"
-          placeholder="Enter your question"
-          className="w-full border rounded-md p-2 mt-1"
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-600">Answer</label>
-        <textarea
-          placeholder="Enter the answer"
-          rows={4}
-          className="w-full border rounded-md p-2 mt-1"
-        ></textarea>
-      </div>
-      <button
-        type="submit"
-        className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
-      >
-        Save Q&A
-      </button>
-    </form>
-  )}
+      {/* Content */}
+      <div className="bg-white shadow rounded-xl p-6">
+        {activeTab === 'qa' && (
+          <form className="space-y-4">
+            <h2 className="text-lg font-semibold text-gray-700">Add New Question & Answer</h2>
+            <div>
+              <label className="block text-sm font-medium text-gray-600">Question</label>
+              <input
+                type="text"
+                placeholder="Enter your question"
+                className="w-full border rounded-md p-2 mt-1"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-600">Answer</label>
+              <textarea
+                placeholder="Enter the answer"
+                rows={4}
+                className="w-full border rounded-md p-2 mt-1"
+              ></textarea>
+            </div>
+            <button
+              type="submit"
+              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+            >
+              Save Q&A
+            </button>
+          </form>
+        )}
 
   {activeTab === 'upload' && (
     <div className="space-y-4">
@@ -94,14 +106,17 @@ export default function KnowledgeBasePage() {
         onChange={(e) => {
           const files = e.target.files;
           if (files && files.length > 0) {
+            setUploadFiles(files);
             console.log('📁 Files selected:');
             Array.from(files).forEach((file) => {
               console.log('—', file.name);
             });
           } else {
             console.log('⚠️ No files selected.');
+            setUploadFiles(null);
           }
         }}
+
         className="hidden"
       />
 
@@ -113,22 +128,110 @@ export default function KnowledgeBasePage() {
           >
             Upload
           </button>
+          
+          {uploadFiles && (
+          <div className="mt-4 space-y-2">
+            <h3 className="font-medium text-gray-700">Selected Files:</h3>
+            <ul className="list-disc list-inside text-sm text-gray-600">
+              {Array.from(uploadFiles).map((file, index) => (
+                <li key={index}>{file.name}</li>
+              ))}
+            </ul>
+            <button
+              type="button"
+              onClick={() => {
+               
+              const fileData = Array.from(uploadFiles).map(file => ({
+                name: file.name,
+                file
+              }));
+              setKnowledgeEntries(prev => [...prev, ...fileData]);
+                setUploadFiles(null);
+                setActiveTab('view');
+              }}
+              className="mt-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+            >
+              Submit
+            </button>
+          </div>
+        )}
+
         </div>
       )}
     </div>
 
 
-
         {activeTab === 'view' && (
           <div>
             <h2 className="text-lg font-semibold text-gray-700 mb-4">Existing Knowledge Entries</h2>
-            <ul className="text-sm text-gray-600 list-disc ml-5">
-              <li>sensor_data_2025.pdf</li>
-              <li>common_questions.docx</li>
-              <li>What is salinity? – A measurement of dissolved salts in water.</li>
+            <ul className="text-sm text-blue-600 list-disc ml-5 space-y-1">
+              {knowledgeEntries.map((entry, index) => (
+            <li
+              key={index}
+              className="cursor-pointer hover:underline relative"
+              onClick={(e) => {
+                e.stopPropagation();
+                const rect = (e.target as HTMLElement).getBoundingClientRect();
+                setPopoverPosition({
+                  top: rect.top + window.scrollY - 10,
+                  left: rect.left + window.scrollX + rect.width / 2,
+                });
+                setSelectedFile(entry.file);
+                setPopoverVisible(true);
+              }}
+            >
+              {entry.name}
+            </li>
+
+
+              ))}
             </ul>
+
           </div>
         )}
+        {popoverVisible && selectedFile && (
+          <div
+            className="absolute z-50 bg-white border rounded-lg shadow-md p-4 text-sm flex flex-col items-center"
+            style={{
+              position: 'absolute',
+              top: popoverPosition.top,
+              left: popoverPosition.left,
+              transform: 'translate(-50%, -110%)'
+            }}
+          >
+            <p className="mb-2 text-center text-gray-800">Open file in browser<br />or download file?</p>
+            <div className="flex gap-2">
+              <button
+                className="px-3 py-1 rounded border text-gray-800 hover:bg-gray-100"
+                onClick={() => {
+                  const url = URL.createObjectURL(selectedFile);
+                  window.open(url, '_blank');
+                  setPopoverVisible(false);
+                  setTimeout(() => URL.revokeObjectURL(url), 1000);
+                }}
+              >
+                Open
+              </button>
+              <button
+                className="px-3 py-1 rounded border text-gray-800 hover:bg-gray-100"
+                onClick={() => {
+                  const url = URL.createObjectURL(selectedFile);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = selectedFile.name;
+                  document.body.appendChild(a);
+                  a.click();
+                  document.body.removeChild(a);
+                  setPopoverVisible(false);
+                  setTimeout(() => URL.revokeObjectURL(url), 1000);
+                }}
+              >
+                Download
+              </button>
+            </div>
+          </div>
+        )}
+
     </AdminLayout>
   );
 }
