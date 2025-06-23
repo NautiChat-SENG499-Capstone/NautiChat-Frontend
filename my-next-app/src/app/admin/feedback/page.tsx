@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import AdminLayout from '@/components/AdminLayout';
 import api from '@/lib/api';
+import AdminGuard from '@/components/AdminGuard';
 
 type Query = {
   message_id: number;
@@ -94,6 +95,7 @@ export default function FeedbackPage() {
 
 
   return (
+    <AdminGuard>
     <AdminLayout>
       <section className="w-full max-w-screen-xl mx-auto py-4 px-6">
           <div className="ml-[-33px]">
@@ -187,5 +189,6 @@ export default function FeedbackPage() {
           </div>
       </section>
     </AdminLayout>
+    </AdminGuard>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import AdminLayout from '@/components/AdminLayout';
+import AdminGuard from '@/components/AdminGuard';
 
 
 
@@ -26,6 +27,7 @@ export default function KnowledgeBasePage() {
 
 
   return (
+    <AdminGuard>
     <AdminLayout>
       <h1 className="text-2xl font-bold text-gray-800 mb-6">Manage Knowledge Base</h1>
 
@@ -233,5 +235,6 @@ export default function KnowledgeBasePage() {
         )}
 
     </AdminLayout>
+    </AdminGuard>
   );
 }
