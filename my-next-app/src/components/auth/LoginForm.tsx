@@ -39,6 +39,7 @@ export default function LoginForm() {
 
       const data = await res.json()
       localStorage.setItem("access_token", data.access_token)
+      localStorage.setItem("is_admin", String(data.is_admin))
 
       router.push("/chat")
     } catch (err: any) {
