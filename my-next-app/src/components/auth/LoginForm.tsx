@@ -31,15 +31,27 @@ export default function LoginForm() {
           password: password,
         }),
       })
-
+      const data = await res.json();
+      
       if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.detail || "Login failed")
+        throw new Error(data.detail || "Login failed");
       }
 
-      const data = await res.json()
+      const token = data.access_token;
       localStorage.setItem("access_token", data.access_token)
-      localStorage.setItem("is_admin", String(data.is_admin))
+
+      const meRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (meRes.ok) {
+      const userData = await meRes.json();
+      localStorage.setItem("is_admin", String(userData.is_admin)); 
+    } else {
+      console.warn("Failed to fetch user info after login.");
+    }
 
       router.push("/chat")
     } catch (err: any) {
