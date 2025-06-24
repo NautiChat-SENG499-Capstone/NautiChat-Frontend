@@ -69,6 +69,20 @@ export default function AdminLandingPage() {
             </div>
           </div>
         </Link>
+
+        {/* Manage Admin Users */}
+        <Link href="/admin/users">
+          <div className="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition cursor-pointer p-6">
+            <div className="mb-4">
+              <div className="text-xl font-semibold text-red-600">Manage Admin Users</div>
+              <div className="text-sm text-gray-500">Add, edit, or remove system users</div>
+            </div>
+            <div className="h-24 bg-gray-100 rounded-md flex items-center justify-center text-gray-400 text-sm">
+              User list placeholder
+            </div>
+          </div>
+        </Link>
+
       </div>
     </AdminLayout>
     </AdminGuard>
