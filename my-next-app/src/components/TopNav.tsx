@@ -2,8 +2,17 @@
 
 import Link from 'next/link';
 import { Settings, LogOut, User } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+
 
 export default function TopNav() {
+  const router = useRouter();
+
+  const handleLogout = () => {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('is_admin');
+    router.push('/auth/login');
+  };
   return (
     <nav className="bg-white shadow-sm px-6 py-4 flex items-center justify-between">
       {/* Left side: Logo and Admin badge */}
@@ -26,6 +35,7 @@ export default function TopNav() {
           <User size={20} />
         </button>
         <button
+          onClick={handleLogout}
           title="Logout"
           className="text-sm px-3 py-1 border rounded-md text-gray-700 hover:bg-gray-100 transition"
         >

@@ -1,35 +1,40 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import AdminLayout from '@/components/AdminLayout';
 import api from '@/lib/api';
+import AdminGuard from '@/components/AdminGuard';
 
-type FeedbackEntry = {
-  id: number;
-  query: string;
+type Query = {
+  message_id: number;
+  input: string;
   response: string;
   rating: number;
-  comment: string;
-  date: string;
 };
 
 export default function FeedbackPage() {
   const pathname = usePathname();
-  const [feedback, setFeedback] = useState<FeedbackEntry[]>([]);
+  const [queries, setQueries] = useState<Query[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [page, setPage] = useState(1);
-  const [filter, setFilter] = useState<'all' | 'positive' | 'negative'>('all');
-  const perPage = 5;
+  const [filter, setFilter] = useState('');
+  const [ratingFilter, setRatingFilter] = useState<'all' | 'up' | 'down'>('all');
 
-  const fetchFeedback = () => {
+
+  const isFetching = useRef(false);
+
+  const fetchQueries = () => {
+    if (isFetching.current) return;
+
+    isFetching.current = true;
     setLoading(true);
     const accessToken = localStorage.getItem('access_token');
 
     if (!accessToken) {
       setError('Unauthorized: Please log in as an admin.');
       setLoading(false);
+      isFetching.current = false;
       return;
     }
 
@@ -40,132 +45,150 @@ export default function FeedbackPage() {
         },
       })
       .then((res) => {
-        const entries = res.data
+        const stripped = res.data
           .filter((msg: any) => msg.feedback && msg.feedback.rating !== undefined)
           .map((msg: any) => ({
-            id: msg.message_id,
-            query: msg.input,
+            message_id: msg.message_id,
+            input: msg.input,
             response: msg.response,
             rating: msg.feedback.rating,
-            comment: msg.feedback.comment,
           }));
-        setFeedback(entries);
+        setQueries(stripped);
       })
       .catch((err) => {
-        console.error('ERROR RESPONSE:', err.response);
+        console.error('ERROR RESPONSE:', err.response || err);
         if (err.response?.status === 401) {
           setError('Unauthorized: Invalid or expired token.');
         } else {
-          setError('Failed to load feedback.');
+          setError('Failed to load queries.');
         }
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        isFetching.current = false;
+        setLoading(false);
+      });
   };
 
   useEffect(() => {
-    fetchFeedback();
+    fetchQueries();
   }, [pathname]);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        fetchFeedback();
+        fetchQueries();
       }
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+    return () =>
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, []);
 
-  const filtered = feedback.filter((f) => {
-    if (filter === 'positive') return f.rating >= 4;
-    if (filter === 'negative') return f.rating <= 2;
-    return true;
-  });
+    const filtered = queries
+      .filter((q) => q.input.toLowerCase().includes(filter.toLowerCase()))
+      .filter((q) => {
+        if (ratingFilter === 'up') return q.rating === 2;
+        if (ratingFilter === 'down') return q.rating === 1;
+        return true;
+      });
 
-  const pageCount = Math.ceil(filtered.length / perPage);
-  const start = (page - 1) * perPage;
-  const paginated = filtered.slice(start, start + perPage);
 
   return (
+    <AdminGuard>
     <AdminLayout>
-      <section className="max-w-6xl mx-auto py-10 px-4">
-        <h1 className="text-2xl font-bold text-gray-800 mb-4">User Feedback</h1>
+      <section className="w-full max-w-screen-xl mx-auto py-4 px-6">
+          <div className="ml-[-33px]">
+        <header className="mb-2">
+          <h1 className="text-2xl font-bold text-gray-800">User Feedback</h1>
+          <p className="text-sm text-gray-600">
+            Explore all user feedback submitted to the chatbot.
+          </p>
+        </header>
 
+        {/* Filter Input */}
+        <div className="mb-3 flex items-center justify-between">
+          <input
+            type="text"
+            placeholder="Search queries..."
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            className="w-full md:w-80 border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
         <div className="flex items-center justify-between mb-4">
           <label className="text-sm text-gray-600">
             Filter by feedback type:{' '}
             <select
-              onChange={(e) => setFilter(e.target.value as 'all' | 'positive' | 'negative')}
-              value={filter}
+              onChange={(e) => setRatingFilter(e.target.value as 'all' | 'up' | 'down')}
+              value={ratingFilter}
               className="ml-2 p-1 border rounded-md"
             >
               <option value="all">All</option>
-              <option value="positive">👍 Positive</option>
-              <option value="negative">👎 Negative</option>
+              <option value="up">Positive👍</option>
+              <option value="down">Negative👎</option>
             </select>
           </label>
         </div>
 
+
+        {/* Error Message */}
         {error && <div className="mb-4 text-red-600 text-sm">{error}</div>}
 
+        {/* Table */}
         {loading ? (
-          <p className="text-center text-gray-500">Loading feedback...</p>
-        ) : (
-          <div className="overflow-x-auto rounded-lg shadow bg-white">
-            <table className="min-w-full text-sm">
-              <thead className="bg-gray-100 text-gray-600 uppercase text-xs">
-                <tr>
-                  <th className="p-3 text-left">Query</th>
-                  <th className="p-3 text-left">Response</th>
-                  <th className="p-3 text-left">Rating</th>
-                  <th className="p-3 text-left">Comment</th>
-                </tr>
-              </thead>
-              <tbody>
-                {paginated.length > 0 ? (
-                  paginated.map((f) => (
-                    <tr key={f.id} className="border-t hover:bg-gray-50">
-                      <td className="p-3">{f.query}</td>
-                      <td className="p-3">{f.response}</td>
-                      <td className="p-3">{f.rating}</td>
-                      <td className="p-3">{f.comment}</td>
+            <p className="text-center text-gray-500">Loading queries...</p>
+          ) : (
+            <div className="w-[1300px] mx-auto bg-white shadow rounded-xl">
+              <div className="max-h-[500px] overflow-y-auto overflow-x-auto">
+                <table className="w-full text-sm table-fixed">
+                  <thead className="bg-gray-100 text-gray-600 uppercase text-xs">
+                    <tr>
+                      <th className="w-12 p-3 text-left">#</th>
+                      <th className="w-1/3 p-3 text-left">Query</th>
+                      <th className="w-2/3 p-3 text-left pl-[87px]">Response</th>
+                      <th className="w-1/6 p-3 text-left">Rating</th>
                     </tr>
+                  </thead>
+                  <tbody>
+                {filtered.length > 0 ? (
+                  filtered.map((q) => (
+                    <tr key={q.message_id} className="border-t hover:bg-gray-50">
+                      <td className="p-3 text-gray-500">{q.message_id}</td>
+                      <td className="p-3 truncate" title={q.input}>
+                        {q.input}
+                      </td>
+                      <td className="p-3 truncate text-gray-800 pl-[87px]" title={q.response}>
+                        {q.response.length > 100 ? q.response.slice(0, 100) + '...' : q.response}
+                      </td>
+                      <td className="p-3 text-gray-700">{q.rating}</td>
+                    </tr> 
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={5} className="p-4 text-center text-gray-400">
-                      No feedback found.
+                    <td colSpan={4} className="p-4 text-center text-gray-400">
+                      No queries found.
                     </td>
                   </tr>
                 )}
               </tbody>
-            </table>
+
+
+          </table>
+          </div>
           </div>
         )}
 
+        {/* Footer */}
         {!loading && (
-          <div className="mt-6 flex justify-center space-x-2">
-            {[...Array(pageCount)].map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setPage(i + 1)}
-                className={`px-3 py-1 rounded-md border ${
-                  page === i + 1
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-white text-gray-700 hover:bg-gray-100'
-                }`}
-              >
-                {i + 1}
-              </button>
-            ))}
-          </div>
-        )}
+            <div className="text-sm text-gray-400 text-center mt-3">
+              Showing all {filtered.length} queries
+            </div>
 
-        <div className="text-sm text-gray-400 text-center mt-6">
-          Showing {paginated.length} of {filtered.length} feedback entries
-        </div>
+        )}
+          </div>
       </section>
     </AdminLayout>
+    </AdminGuard>
   );
 }
