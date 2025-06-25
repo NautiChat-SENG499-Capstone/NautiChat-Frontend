@@ -6,14 +6,17 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import PasswordInput from "./PasswordInput"
+import { useAuth } from "@/context/AuthContext"
 
 export default function LoginForm() {
   const router = useRouter()
+  const { login } = useAuth()
+
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-  const [guestLoading, setGuestLoading] = useState(false) // new state for sign in for guest
+  const [guestLoading, setGuestLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -23,13 +26,8 @@ export default function LoginForm() {
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: new URLSearchParams({
-          username: username,
-          password: password,
-        }),
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({ username, password }),
       })
 
       if (!res.ok) {
@@ -38,8 +36,9 @@ export default function LoginForm() {
       }
 
       const data = await res.json()
-      localStorage.setItem("access_token", data.access_token)
+      login(data.access_token, false) // ✅ Regular login (not guest)
 
+      localStorage.setItem("is_admin", String(data.is_admin))
       router.push("/chat")
     } catch (err: any) {
       setError(err.message)
@@ -50,8 +49,8 @@ export default function LoginForm() {
 
   const handleGuestLogin = () => {
     setGuestLoading(true)
-    // Hardcoded guest token for now
-    localStorage.setItem("access_token", "guest-access-token")
+    login("guest-access-token", true) // ✅ Guest login, pass true
+    localStorage.setItem("is_admin", "false")
     router.push("/chat")
   }
 

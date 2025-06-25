@@ -5,9 +5,12 @@ import { FiSettings, FiLogOut } from 'react-icons/fi';
 import { FaUserCircle } from 'react-icons/fa';
 import AdminLayout from '@/components/AdminLayout';
 import TopNav from '@/components/TopNav'
+import { useRouter } from 'next/navigation';
+import AdminGuard from '@/components/AdminGuard';
 
 export default function AdminLandingPage() {
   return (
+    <AdminGuard>
     <AdminLayout>
       <header className="mb-8">
         <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
@@ -68,5 +71,6 @@ export default function AdminLandingPage() {
         </Link>
       </div>
     </AdminLayout>
+    </AdminGuard>
   );
 }
