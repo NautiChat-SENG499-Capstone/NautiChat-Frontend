@@ -41,7 +41,7 @@ export default function KnowledgeBasePage() {
               : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-100'
           }`}
         >
-          ➕ Add Q&A
+          ➕ Add Information
         </button>
         <button
           onClick={() => setActiveTab('upload')}
@@ -69,19 +69,19 @@ export default function KnowledgeBasePage() {
       <div className="bg-white shadow rounded-xl p-6">
         {activeTab === 'qa' && (
           <form className="space-y-4">
-            <h2 className="text-lg font-semibold text-gray-700">Add New Question & Answer</h2>
+            <h2 className="text-lg font-semibold text-gray-700">Add Information to the Knowledge Base</h2>
             <div>
-              <label className="block text-sm font-medium text-gray-600">Question</label>
+              <label className="block text-sm font-medium text-gray-600">Source</label>
               <input
                 type="text"
-                placeholder="Enter your question"
+                placeholder="Provide your source"
                 className="w-full border rounded-md p-2 mt-1"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-600">Answer</label>
+              <label className="block text-sm font-medium text-gray-600">Text</label>
               <textarea
-                placeholder="Enter the answer"
+                placeholder="Enter your text"
                 rows={4}
                 className="w-full border rounded-md p-2 mt-1"
               ></textarea>
@@ -90,7 +90,7 @@ export default function KnowledgeBasePage() {
               type="submit"
               className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
             >
-              Save Q&A
+              Add to Knowledge Base
             </button>
           </form>
         )}
