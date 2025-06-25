@@ -20,13 +20,13 @@ export default function AdminUsersPage() {
   const [editUser, setEditUser] = useState<User | null>(null);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [rePassword, setRePassword] = useState('');
 
   const openAddUser = () => {
     setEditUser(null);
     setUsername('');
     setPassword('');
-    setIsAdmin(false);
+    setRePassword('');
     setFormOpen(true);
   };
 
@@ -34,7 +34,7 @@ export default function AdminUsersPage() {
     setEditUser(user);
     setUsername(user.username);
     setPassword('');
-    setIsAdmin(user.isAdmin);
+    setRePassword('');
     setFormOpen(true);
   };
 
@@ -43,17 +43,17 @@ export default function AdminUsersPage() {
   };
 
   const handleSubmit = () => {
-    if (!username || !password) return;
+    if (!username || !password || password !== rePassword) return;
 
     if (editUser) {
       setUsers(prev =>
         prev.map(u =>
-          u.id === editUser.id ? { ...u, username, isAdmin } : u
+          u.id === editUser.id ? { ...u, username } : u
         )
       );
     } else {
       const newId = users.length ? Math.max(...users.map(u => u.id)) + 1 : 1;
-      setUsers(prev => [...prev, { id: newId, username, isAdmin }]);
+      setUsers(prev => [...prev, { id: newId, username, isAdmin: false }]);
     }
 
     setFormOpen(false);
@@ -122,7 +122,6 @@ export default function AdminUsersPage() {
             </table>
           </div>
 
-          {/* Modal */}
           {formOpen && (
             <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
               <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
@@ -138,20 +137,19 @@ export default function AdminUsersPage() {
                     onChange={e => setUsername(e.target.value)}
                   />
                   <input
-                    type="password"
+                    type="text"
                     placeholder="Password"
                     className="w-full border rounded p-2"
                     value={password}
                     onChange={e => setPassword(e.target.value)}
                   />
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      checked={isAdmin}
-                      onChange={e => setIsAdmin(e.target.checked)}
-                    />
-                    <label className="text-sm text-gray-700">Admin</label>
-                  </div>
+                  <input
+                    type="text"
+                    placeholder="Re-enter Password"
+                    className="w-full border rounded p-2"
+                    value={rePassword}
+                    onChange={e => setRePassword(e.target.value)}
+                  />
                   <div className="flex justify-end space-x-2 pt-4">
                     <button
                       onClick={() => setFormOpen(false)}

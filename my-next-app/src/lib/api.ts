@@ -315,6 +315,13 @@ export class ChatAPI {
     }
   }
 
+  // GET /auth/me - Get current user info
+  async getCurrentUser(): Promise<{ id: number; username: string; onc_token: string; is_admin: boolean }> {
+    const response = await this.client.get("/auth/me");
+    return response.data;
+  }
+
+
   // GET /llm/conversations/{conversation_id} - Get a specific conversation
   async getConversation(conversationId: string): Promise<ApiConversation> {
     try {

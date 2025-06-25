@@ -5,8 +5,26 @@ import { TerritorialAcknowledgement } from "@/components/TerritorialAcknowledgem
 import { Bot, Menu } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation" 
+import { chatAPI } from "@/lib/api"
 
 export function ChatHeader() {
+  const [isAdmin, setIsAdmin] = useState(false)
+  const router = useRouter()
+
+  useEffect(() => {
+    chatAPI.getCurrentUser()
+      .then((data) => {
+        if (data.is_admin) {
+          setIsAdmin(true)
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to get current user:", err)
+      })
+  }, [])
+
   return (
     <div className="bg-sky-950 text-white p-6">
       <div className="flex items-center justify-between mb-4">
@@ -40,6 +58,15 @@ export function ChatHeader() {
           
         
         <div className="flex items-center space-x-4">
+            {isAdmin && (
+            <Button
+              variant="ghost"
+              className="text-white hover:bg-white/20"
+              onClick={() => router.push("/admin")}
+            >
+              Admin
+            </Button>
+          )}
           <Link href="/auth/login">
             <Button variant="ghost" className="text-white hover:bg-white/20">
               Log in
