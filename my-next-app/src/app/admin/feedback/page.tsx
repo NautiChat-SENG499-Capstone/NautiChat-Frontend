@@ -161,7 +161,10 @@ export default function FeedbackPage() {
                       <td className="p-3 truncate text-gray-800 pl-[87px]" title={q.response}>
                         {q.response.length > 100 ? q.response.slice(0, 100) + '...' : q.response}
                       </td>
-                      <td className="p-3 text-gray-700">{q.rating}</td>
+                      <td className="p-3 text-gray-700">
+                        {q.rating === 2 ? '👍' : q.rating === 1 ? '👎' : '-'}
+                      </td>
+
                     </tr> 
                   ))
                 ) : (
