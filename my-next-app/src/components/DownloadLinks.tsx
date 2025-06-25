@@ -19,14 +19,7 @@ export function DownloadLinks({ link, className = "" }: DownloadLinksProps) {
   }
 
   const getFileName = (url: string) => {
-    try {
-      const urlObj = new URL(url)
-      const pathname = urlObj.pathname
-      const fileName = pathname.split("/").pop() || "Download"
-      return fileName
-    } catch {
-      return "Download"
-    }
+    return "Download"
   }
 
   return (
