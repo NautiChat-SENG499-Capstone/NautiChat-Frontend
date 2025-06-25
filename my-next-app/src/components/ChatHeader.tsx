@@ -1,6 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
+import { TerritorialAcknowledgement } from "@/components/TerritorialAcknowledgement"
 import { Bot, Menu } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
@@ -10,7 +11,14 @@ export function ChatHeader() {
     <div className="bg-sky-950 text-white p-6">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-4">
+            <a
+            href="https://www.oceannetworks.ca"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-16 h-16 bg-white rounded flex items-center justify-center hover:bg-gray-50 transition-colors cursor-pointer"
+          >
             <Image src="/ONC_Primary_Pantone.png" alt="Logo" width={100} height={55} />
+          </a>
         </div>
         
          <div className="text-center">
@@ -23,8 +31,13 @@ export function ChatHeader() {
             <p className="text-lg mb-2 opacity-90">
               Ask questions about the data collected from cabled observatories, mobile platforms and autonomous instruments.
             </p>
+
+            <TerritorialAcknowledgement />
+            
             <p className="text-sm opacity-75">Built with Meta Llama 3</p>
           </div>
+
+          
         
         <div className="flex items-center space-x-4">
           <Link href="/auth/login">
