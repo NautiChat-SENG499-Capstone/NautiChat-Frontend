@@ -6,9 +6,12 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import PasswordInput from "./PasswordInput"
+import { useAuth } from "@/context/AuthContext" // ✅ Import your Auth Context
 
 export default function RegisterForm() {
   const router = useRouter()
+  const { login } = useAuth() // ✅ Get login function from context
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -18,6 +21,8 @@ export default function RegisterForm() {
 
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+
+  const API_URL = process.env.NEXT_PUBLIC_API_URL
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -32,14 +37,17 @@ export default function RegisterForm() {
       return
     }
 
+    if (!formData.oncToken) {
+      setError("ONC Token is required")
+      return
+    }
+
     setLoading(true)
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/register`, {
+      const res = await fetch(`${API_URL}/auth/register`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           username: formData.email,
           password: formData.password,
@@ -48,27 +56,26 @@ export default function RegisterForm() {
       })
 
       const contentType = res.headers.get("content-type")
+      let data
 
-      if (!res.ok) {
-        if (contentType && contentType.includes("application/json")) {
-          const data = await res.json()
-          throw new Error(data.detail || "Registration failed")
-        } else {
-          const text = await res.text()
-          throw new Error(text || "Registration failed with unknown error")
+      if (contentType?.includes("application/json")) {
+        data = await res.json()
+        if (!res.ok) {
+          throw new Error(data?.detail || "Registration failed")
         }
+      } else {
+        const text = await res.text()
+        throw new Error(text || "Unknown registration error")
       }
 
-      const data = contentType && contentType.includes("application/json") ? await res.json() : null
-
       if (data?.access_token) {
-        localStorage.setItem("access_token", data.access_token) // <-- unify key name
+        login(data.access_token)
         router.push("/chat")
       } else {
         throw new Error("No access token returned")
       }
     } catch (err: any) {
-      setError(err.message)
+      setError(err.message || "An error occurred")
     } finally {
       setLoading(false)
     }

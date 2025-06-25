@@ -6,14 +6,17 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import PasswordInput from "./PasswordInput"
+import { useAuth } from "@/context/AuthContext"
 
 export default function LoginForm() {
   const router = useRouter()
+  const { login } = useAuth()
+
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-  const [guestLoading, setGuestLoading] = useState(false) // new state for sign in for guest
+  const [guestLoading, setGuestLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -23,36 +26,19 @@ export default function LoginForm() {
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: new URLSearchParams({
-          username: username,
-          password: password,
-        }),
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({ username, password }),
       })
-      const data = await res.json();
-      
+
       if (!res.ok) {
-        throw new Error(data.detail || "Login failed");
+        const data = await res.json()
+        throw new Error(data.detail || "Login failed")
       }
 
-      const token = data.access_token;
-      localStorage.setItem("access_token", data.access_token)
+      const data = await res.json()
+      login(data.access_token, false) // ✅ Regular login (not guest)
 
-      const meRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (meRes.ok) {
-      const userData = await meRes.json();
-      localStorage.setItem("is_admin", String(userData.is_admin)); 
-    } else {
-      console.warn("Failed to fetch user info after login.");
-    }
-
+      localStorage.setItem("is_admin", String(data.is_admin))
       router.push("/chat")
     } catch (err: any) {
       setError(err.message)
@@ -63,8 +49,8 @@ export default function LoginForm() {
 
   const handleGuestLogin = () => {
     setGuestLoading(true)
-    // Hardcoded guest token for now
-    localStorage.setItem("access_token", "guest-access-token")
+    login("guest-access-token", true) // ✅ Guest login, pass true
+    localStorage.setItem("is_admin", "false")
     router.push("/chat")
   }
 
