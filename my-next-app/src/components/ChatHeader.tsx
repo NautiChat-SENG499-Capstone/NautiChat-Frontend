@@ -7,10 +7,17 @@ import { Menu } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { useEffect, useState} from 'react'
 
 export function ChatHeader() {
   const { isLoggedIn, isGuest, logout } = useAuth()
   const router = useRouter()
+
+  const [isAdmin, setIsAdmin] = useState(false)
+  useEffect(() => {
+    const adminFlag = localStorage.getItem("is_admin")
+    setIsAdmin(adminFlag === "true")
+  }, [])
 
   const handleLogout = () => {
     logout()
@@ -48,6 +55,13 @@ export function ChatHeader() {
         </div>
 
         <div className="flex items-center space-x-4">
+          {isAdmin && (
+            <Link href="/admin">
+              <Button variant="ghost" className="text-white hover:bg-white/20">
+                Admin
+              </Button>
+            </Link>
+          )}
           {isLoggedIn && !isGuest ? (
             <Button variant="ghost" className="text-white hover:bg-white/20" onClick={handleLogout}>
               Sign out

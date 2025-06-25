@@ -38,7 +38,18 @@ export default function LoginForm() {
       const data = await res.json()
       login(data.access_token, false) // ✅ Regular login (not guest)
 
-      localStorage.setItem("is_admin", String(data.is_admin))
+
+      const userRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
+      headers: {
+        Authorization: `Bearer ${data.access_token}`, 
+      },
+    });
+
+      if (!userRes.ok) throw new Error("Failed to fetch user info");
+
+      const user = await userRes.json();
+
+      localStorage.setItem("is_admin", String(user.is_admin))
       router.push("/chat")
     } catch (err: any) {
       setError(err.message)
