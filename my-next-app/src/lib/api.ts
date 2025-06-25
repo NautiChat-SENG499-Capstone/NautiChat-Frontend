@@ -21,7 +21,7 @@ export class ChatAPI {
   constructor(baseUrl: string = API_BASE_URL) {
     this.client = axios.create({
       baseURL: baseUrl,
-      timeout: 120000, // 60 seconds timeout for LLM responses
+      timeout: 600000000, // 60 seconds timeout for LLM responses
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
@@ -410,16 +410,7 @@ export function convertApiMessage(apiMessage: ApiMessage): Message[] {
     messageId: apiMessage.message_id.toString(),
   })
 
-  // Process download link - only include if it's not "no" and is a valid string
-  let downloadLink: string | undefined = undefined
-  if (apiMessage.download_link && apiMessage.download_link !== "no" && apiMessage.download_link.trim() !== "") {
-    downloadLink = apiMessage.download_link
-    console.log("Found download link:", downloadLink)
-  }else{
-    console.log("found no link")
-  }
-
-  // Add assistant message with download link
+  // Add assistant message
   messages.push({
     id: `${apiMessage.message_id}`,
     content: apiMessage.response,
@@ -427,7 +418,6 @@ export function convertApiMessage(apiMessage: ApiMessage): Message[] {
     timestamp: new Date(), // Use current time since API doesn't provide timestamps
     messageId: apiMessage.message_id.toString(),
     feedback: apiMessage.feedback,
-    downloadLink: downloadLink,
   })
 
   return messages
