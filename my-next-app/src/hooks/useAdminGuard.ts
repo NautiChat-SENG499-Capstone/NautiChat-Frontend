@@ -10,10 +10,11 @@ export function useAdminGuard() {
   useEffect(() => {
     const token = localStorage.getItem('access_token');
     const isAdmin = localStorage.getItem('is_admin');
+    const isGuest = localStorage.getItem('is_guest') === 'true'
 
-    if (!token) {
-      // Not logged in
-      window.location.href = '/auth/login';
+    if (!token || isGuest) {
+      // Not logged in or logged in as guest
+      window.location.href = '/auth/login'
     } else if (isAdmin !== 'true') {
       // Logged in but not admin
       setIsAuthorized(false);
