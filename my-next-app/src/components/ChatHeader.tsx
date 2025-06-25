@@ -9,7 +9,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 
 export function ChatHeader() {
-  const { isLoggedIn, logout } = useAuth()
+  const { isLoggedIn, isGuest, logout } = useAuth()
   const router = useRouter()
 
   const handleLogout = () => {
@@ -48,7 +48,7 @@ export function ChatHeader() {
         </div>
 
         <div className="flex items-center space-x-4">
-          {isLoggedIn ? (
+          {isLoggedIn && !isGuest ? (
             <Button variant="ghost" className="text-white hover:bg-white/20" onClick={handleLogout}>
               Sign out
             </Button>
