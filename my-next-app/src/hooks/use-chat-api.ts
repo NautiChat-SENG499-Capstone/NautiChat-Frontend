@@ -154,7 +154,7 @@ export function useChatAPI() {
             messageId: aiResponse.message_id.toString(),
           },
           {
-            id: `assistant-${aiResponse.message_id}`,
+            id: `${aiResponse.message_id}`,
             content: aiResponse.response,
             role: "assistant",
             timestamp: new Date(),
@@ -271,7 +271,7 @@ export function useChatAPI() {
       }
 
       const assistantMessage: Message = {
-        id: `assistant-${aiResponse.message_id}`,
+        id: `${aiResponse.message_id}`,
         content: aiResponse.response,
         role: "assistant",
         timestamp: new Date(),
