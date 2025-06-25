@@ -83,6 +83,19 @@ export default function AdminLandingPage() {
           </div>
         </Link>
 
+        {/* User Question Groups */}
+        <Link href="/admin/cluster">
+          <div className="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition cursor-pointer p-6">
+            <div className="mb-4">
+              <div className="text-xl font-semibold text-yellow-600">User Question Groups</div>
+              <div className="text-sm text-gray-500">View grouped queries by topic or intent</div>
+            </div>
+            <div className="h-24 bg-gray-100 rounded-md flex items-center justify-center text-gray-400 text-sm">
+              Cluster preview placeholder
+            </div>
+          </div>
+        </Link>
+
       </div>
     </AdminLayout>
     </AdminGuard>
