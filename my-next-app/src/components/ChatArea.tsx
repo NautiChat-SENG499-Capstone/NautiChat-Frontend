@@ -2,6 +2,7 @@
 
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { MessageFeedback } from "./MessageFeedback"
+import { DownloadLinks } from "./DownloadLinks"
 import type { Message } from "@/types/chat"
 import { useEffect, useRef } from "react"
 
@@ -79,6 +80,18 @@ export function ChatArea({
                     </p>
                   </div>
                 </div>
+
+                {/* Show download link for assistant messages with a valid link */}
+                {message.role === "assistant" &&
+                  message.content !== "Processing..." &&
+                  message.downloadLink &&
+                  message.downloadLink !== "no" && (
+                    <div className="flex justify-start">
+                      <div className="max-w-[70%] ml-0">
+                        <DownloadLinks link={message.downloadLink} />
+                      </div>
+                    </div>
+                  )}
 
                 {/* Show feedback component for assistant messages (but not processing messages) */}
                 {message.role === "assistant" &&

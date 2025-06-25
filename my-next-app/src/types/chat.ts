@@ -8,6 +8,7 @@ export interface Message {
     rating: number
     comment: string
   }
+  downloadLink?: string
 }
 
 export interface Chat {
@@ -34,6 +35,7 @@ export interface ApiMessage {
     rating: number
     comment: string
   }
+  download_link?: string
 }
 
 export interface ApiConversation {
@@ -67,6 +69,7 @@ export interface MessageResponse {
     rating: number
     comment: string
   }
+  download_link?: string
 }
 
 export interface FeedbackRequest {
