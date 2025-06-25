@@ -31,8 +31,8 @@ export default function ClusteredQueriesAccordionGridPage() {
 
         setClusters(res.data)
       } catch (err: any) {
-        console.error('Error fetching clusters:', err)
-        setError('Failed to load clustered queries.')
+        console.error('Error fetching groups:', err)
+        setError('Failed to load grouped queries.')
       } finally {
         setLoading(false)
       }
@@ -41,7 +41,7 @@ export default function ClusteredQueriesAccordionGridPage() {
     fetchClusters()
   }, [])
 
-  // Handle Escape key for modal close
+ 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -53,7 +53,7 @@ export default function ClusteredQueriesAccordionGridPage() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
 
-  // Disable body scroll when modal is open
+
   useEffect(() => {
     if (modalCluster) {
       document.body.style.overflow = 'hidden'
@@ -63,8 +63,8 @@ export default function ClusteredQueriesAccordionGridPage() {
   }, [modalCluster])
 
   const clusterKeys = Object.keys(clusters).sort((a, b) => {
-    if (a === '-1') return 1
-    if (b === '-1') return -1
+    if (a === '-1') return -1
+    if (b === '-1') return 1
     return Number(a) - Number(b)
   })
 
@@ -81,14 +81,14 @@ export default function ClusteredQueriesAccordionGridPage() {
             <header className="mb-4">
               <h1 className="text-2xl font-bold text-gray-800">User Question Groups</h1>
               <p className="text-sm text-gray-600">
-                Explore clusters of similar user queries.
+                Explore groups of similar questions asked.
               </p>
             </header>
 
             {error && <div className="text-red-600 text-sm mb-4">{error}</div>}
 
             {loading ? (
-              <p className="text-center text-gray-500">Loading clustered queries...</p>
+              <p className="text-center text-gray-500">Loading grouped questions...</p>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {clusterKeys.map((clusterId) => (
@@ -103,7 +103,7 @@ export default function ClusteredQueriesAccordionGridPage() {
                       className="w-full text-left px-4 py-3 flex items-center justify-between hover:bg-gray-50 transition"
                     >
                       <span className="font-semibold text-blue-600 text-sm">
-                        {clusterId === '-1' ? 'Uncategorized' : `Cluster ${clusterId}`}
+                        {clusterId === '-1' ? 'Uncategorized' : `Group ${clusterId}`}
                       </span>
                       <span className="text-xs text-gray-500">
                         {clusters[clusterId].length} queries
@@ -147,7 +147,7 @@ export default function ClusteredQueriesAccordionGridPage() {
             >
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-lg font-bold text-blue-600">
-                  {modalCluster === '-1' ? 'Uncategorized' : `Cluster ${modalCluster}`}
+                  {modalCluster === '-1' ? 'Uncategorized' : `Group ${modalCluster}`}
                 </h2>
                 <button
                   onClick={() => setModalCluster(null)}
