@@ -349,7 +349,7 @@ export class ChatAPI {
       console.log("Health check response:", response.data)
 
       // Check if the response indicates the API is healthy
-      const isHealthy = response.data && response.data.status === "ok"
+      const isHealthy = response.data && response.data.status === "healthy"
 
       if (isHealthy) {
         console.log("API health check passed")

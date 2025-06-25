@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { chatAPI, convertApiConversation } from "@/lib/api"
 import type { Message, Chat } from "@/types/chat"
 
@@ -11,9 +11,20 @@ export function useChatAPI() {
   const [error, setError] = useState<string | null>(null)
   const [connectionStatus, setConnectionStatus] = useState<"connecting" | "connected" | "error">("connecting")
 
+  // Ref to prevent double initialization
+  const isInitialized = useRef(false)
+  const isInitializing = useRef(false)
+
   // Test connection and load conversations
   const initializeApp = async () => {
+    // Prevent double initialization
+    if (isInitializing.current || isInitialized.current) {
+      console.log("App already initialized or initializing, skipping...")
+      return
+    }
+
     try {
+      isInitializing.current = true
       setIsLoading(true)
       setError(null)
       setConnectionStatus("connecting")
@@ -28,6 +39,7 @@ export function useChatAPI() {
         console.log("Connection successful, loading chats...")
         // Load conversations if connection is successful
         await loadChats()
+        isInitialized.current = true
       } else {
         setConnectionStatus("error")
         setError("Unable to connect to the API server. Please check your connection.")
@@ -39,6 +51,7 @@ export function useChatAPI() {
       setError(errorMessage)
     } finally {
       setIsLoading(false)
+      isInitializing.current = false
     }
   }
 
@@ -141,7 +154,7 @@ export function useChatAPI() {
             messageId: aiResponse.message_id.toString(),
           },
           {
-            id: `${aiResponse.message_id}`,
+            id: `assistant-${aiResponse.message_id}`,
             content: aiResponse.response,
             role: "assistant",
             timestamp: new Date(),
@@ -258,7 +271,7 @@ export function useChatAPI() {
       }
 
       const assistantMessage: Message = {
-        id: `${aiResponse.message_id}`,
+        id: `assistant-${aiResponse.message_id}`,
         content: aiResponse.response,
         role: "assistant",
         timestamp: new Date(),
@@ -356,17 +369,31 @@ export function useChatAPI() {
     }
   }
 
-  // Initialize app on mount
-  useEffect(() => {
-    initializeApp()
-  }, [])
+  // Manual retry function for connection issues
+  const retryInitialization = async () => {
+    // Reset initialization flags to allow retry
+    isInitialized.current = false
+    isInitializing.current = false
+    await initializeApp()
+  }
 
-  // Debug effect to log chats state changes
+  // Initialize app on mount - with proper dependency array and cleanup
   useEffect(() => {
-    console.log("=== CHATS STATE UPDATED ===")
-    console.log("Number of chats:", chats.length)
-    console.log("Chats:", chats)
-  }, [chats])
+    let isMounted = true
+
+    const initialize = async () => {
+      if (isMounted && !isInitialized.current && !isInitializing.current) {
+        await initializeApp()
+      }
+    }
+
+    initialize()
+
+    // Cleanup function
+    return () => {
+      isMounted = false
+    }
+  }, []) // Empty dependency array - only run once on mount
 
   return {
     chats,
@@ -380,6 +407,6 @@ export function useChatAPI() {
     sendMessage,
     submitFeedback,
     setCurrentChat,
-    initializeApp,
+    initializeApp: retryInitialization, // Use the retry version for manual calls
   }
 }
