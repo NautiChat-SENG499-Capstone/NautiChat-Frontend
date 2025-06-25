@@ -21,7 +21,7 @@ export class ChatAPI {
   constructor(baseUrl: string = API_BASE_URL) {
     this.client = axios.create({
       baseURL: baseUrl,
-      timeout: 60000, // 60 seconds timeout for LLM responses
+      timeout: 120000, // 60 seconds timeout for LLM responses
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
