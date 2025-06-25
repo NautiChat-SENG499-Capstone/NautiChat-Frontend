@@ -36,20 +36,9 @@ export default function LoginForm() {
       }
 
       const data = await res.json()
-      login(data.access_token, false) // ✅ Regular login (not guest)
+      login(data.access_token, false)
 
-
-      const userRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
-      headers: {
-        Authorization: `Bearer ${data.access_token}`, 
-      },
-    });
-
-      if (!userRes.ok) throw new Error("Failed to fetch user info");
-
-      const user = await userRes.json();
-
-      localStorage.setItem("is_admin", String(user.is_admin))
+      localStorage.setItem("is_admin", String(data.is_admin))
       router.push("/chat")
     } catch (err: any) {
       setError(err.message)
@@ -60,7 +49,7 @@ export default function LoginForm() {
 
   const handleGuestLogin = () => {
     setGuestLoading(true)
-    login("guest-access-token", true) // ✅ Guest login, pass true
+    login("guest-access-token", true) //Guest login, pass true
     localStorage.setItem("is_admin", "false")
     router.push("/chat")
   }
