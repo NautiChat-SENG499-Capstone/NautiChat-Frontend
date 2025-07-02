@@ -5,6 +5,7 @@ import { MessageFeedback } from "./MessageFeedback"
 import { DownloadLinks } from "./DownloadLinks"
 import type { Message } from "@/types/chat"
 import { useEffect, useRef } from "react"
+import TTSButton from "@/components/TTSButton";
 
 interface ChatAreaProps {
   messages?: Message[]
@@ -81,6 +82,13 @@ export function ChatArea({
                   </div>
                 </div>
 
+                {message.role === "assistant" &&
+                  (<div className="flex justify-start">
+                    <div className="max-w-[70%] ml-0">
+                      <TTSButton text={message.content} />
+                    </div>
+                  </div>
+                )}
                 {/* Show download link for assistant messages with a valid link */}
                 {message.role === "assistant" &&
                   message.content !== "Processing..." &&
