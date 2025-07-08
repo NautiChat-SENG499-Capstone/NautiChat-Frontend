@@ -1,11 +1,9 @@
 "use client"
 
+import { useState, useRef, useEffect } from "react"
 import type React from "react"
-
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { ArrowUp } from "lucide-react"
-import { useState } from "react"
 
 interface ChatInputProps {
   placeholder?: string
@@ -15,6 +13,15 @@ interface ChatInputProps {
 
 export function ChatInput({ placeholder = "Ask anything ...", onSendMessage, disabled = false }: ChatInputProps) {
   const [message, setMessage] = useState("")
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  // Auto-resize textarea as user types
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto"
+      textareaRef.current.style.height = textareaRef.current.scrollHeight + "px"
+    }
+  }, [message])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -35,12 +42,14 @@ export function ChatInput({ placeholder = "Ask anything ...", onSendMessage, dis
     <div className="flex-shrink-0 p-6 border-t bg-white">
       <div className="max-w-4xl mx-auto">
         <form onSubmit={handleSubmit} className="relative">
-          <Input
+          <textarea
+            ref={textareaRef}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder={placeholder}
             disabled={disabled}
-            className="w-full h-14 pl-6 pr-14 rounded-full border-2 border-gray-300 text-lg focus:border-blue-500 focus:ring-0 disabled:opacity-50"
+            rows={1}
+            className="w-full resize-none overflow-hidden pl-6 pr-14 py-3 rounded-full border-2 border-gray-300 text-lg focus:border-blue-500 focus:ring-0 disabled:opacity-50"
           />
           <Button
             type="button"
