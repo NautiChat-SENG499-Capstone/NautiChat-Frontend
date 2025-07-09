@@ -8,7 +8,7 @@ export interface Message {
     rating: number
     comment: string
   }
-  downloadLink?: string
+  dpRequestId?: string
 }
 
 export interface Chat {
@@ -31,11 +31,11 @@ export interface ApiMessage {
   user_id: number
   input: string
   response: string
+  request_id?: number // Only data product request ID
   feedback?: {
     rating: number
     comment: string
   }
-  download_link?: string
 }
 
 export interface ApiConversation {
@@ -65,11 +65,11 @@ export interface MessageResponse {
   user_id: number
   input: string
   response: string
+  request_id?: number // Only data product request ID
   feedback?: {
     rating: number
     comment: string
   }
-  download_link?: string
 }
 
 export interface FeedbackRequest {
@@ -79,4 +79,31 @@ export interface FeedbackRequest {
 
 export interface ConversationsResponse {
   conversations: ApiConversation[]
+}
+
+// User info from /auth/me endpoint
+export interface UserInfo {
+  id: number
+  username: string
+  onc_token: string
+  is_admin: boolean
+}
+
+// Ocean Networks Canada API response types
+export interface ONCDataProductResponse {
+  status: string
+  dpRunId?: string
+  message?: string
+}
+
+// Types for data product delivery
+export interface DataProductStatus {
+  status: "queued" | "running" | "complete" | "error"
+  message?: string
+  downloadUrl?: string
+}
+
+export interface DataProductRunResponse {
+  success: boolean
+  message?: string
 }

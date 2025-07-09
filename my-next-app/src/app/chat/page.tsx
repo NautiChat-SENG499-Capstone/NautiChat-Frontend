@@ -5,6 +5,8 @@ import { ChatSidebar } from "@/components/ChatSidebar"
 import { ChatArea } from "@/components/ChatArea"
 import { ChatInput } from "@/components/ChatInput"
 import { ConnectionStatus } from "@/components/ConnectionStatus"
+import { DownloadCompletePopup } from "@/components/DownloadCompletePopup"
+import { useDownloadManager } from "@/hooks/use-download-manager"
 import { useChatAPI } from "@/hooks/use-chat-api"
 import { useEffect } from "react"
 
@@ -22,6 +24,8 @@ export default function OceansChatBot() {
     setCurrentChat,
     initializeApp,
   } = useChatAPI()
+
+  const { completedDownloads, dismissCompleted, activeDownloads } = useDownloadManager()
 
   const handleNewChat = () => {
     setCurrentChat(null)
@@ -105,7 +109,7 @@ export default function OceansChatBot() {
         <ChatArea
           messages={currentChat?.messages || []}
           title="What do you want to know?"
-          example="How thick was the ice in Cambridge Bay on February this year?"
+          example="What is the average temperature in Cambridge bay?"
           onFeedback={handleFeedback}
         />
 
@@ -131,6 +135,24 @@ export default function OceansChatBot() {
           </div>
         )}
       </div>
+
+      {/* Download complete popups */}
+      {completedDownloads.map((requestId) => {
+        const downloadJob = activeDownloads[requestId]
+        return (
+          <DownloadCompletePopup
+            key={requestId}
+            requestId={requestId}
+            onDownload={() => {
+              if (downloadJob?.downloadUrl) {
+                window.open(downloadJob.downloadUrl, "_blank", "noopener,noreferrer")
+              }
+              dismissCompleted(requestId)
+            }}
+            onDismiss={() => dismissCompleted(requestId)}
+          />
+        )
+      })}
     </div>
   )
 }

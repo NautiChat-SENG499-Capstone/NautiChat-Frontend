@@ -8,11 +8,12 @@ import type {
   MessageRequest,
   MessageResponse,
   FeedbackRequest,
+  UserInfo,
 } from "@/types/chat"
 
 // API configuration
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || ""
+  process.env.NEXT_PUBLIC_API_URL || "https://nautichat-api-1050974581549.northamerica-northeast1.run.app"
 
 // API client class
 export class ChatAPI {
@@ -21,7 +22,7 @@ export class ChatAPI {
   constructor(baseUrl: string = API_BASE_URL) {
     this.client = axios.create({
       baseURL: baseUrl,
-      timeout: 600000000, // 60 seconds timeout for LLM responses
+      timeout: 60000, // 60 seconds timeout for LLM responses
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
@@ -152,6 +153,31 @@ export class ChatAPI {
     }
     console.log("No user_id found")
     return null
+  }
+
+  // GET /auth/me - Get current user info including ONC token
+  async getUserInfo(): Promise<UserInfo> {
+    try {
+      console.log("Fetching user info...")
+
+      const response = await this.client.get<UserInfo>("/auth/me")
+      console.log("User info received:", { ...response.data, onc_token: "[REDACTED]" })
+      return response.data
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 401) {
+          throw new Error("Authentication failed. Please log in again.")
+        }
+        if (error.code === "NETWORK_ERROR" || error.message === "Network Error") {
+          throw new Error(
+            "Unable to connect to the server. Please check if the API is running and CORS is configured properly.",
+          )
+        }
+        const errorDetail = error.response?.data?.detail || error.message
+        throw new Error(`Failed to fetch user info: ${errorDetail}`)
+      }
+      throw new Error("Failed to fetch user info: Unknown error")
+    }
   }
 
   // POST /llm/conversations - Create a new conversation
@@ -315,13 +341,6 @@ export class ChatAPI {
     }
   }
 
-  // GET /auth/me - Get current user info
-  async getCurrentUser(): Promise<{ id: number; username: string; onc_token: string; is_admin: boolean }> {
-    const response = await this.client.get("/auth/me");
-    return response.data;
-  }
-
-
   // GET /llm/conversations/{conversation_id} - Get a specific conversation
   async getConversation(conversationId: string): Promise<ApiConversation> {
     try {
@@ -392,11 +411,8 @@ export class ChatAPI {
   }
 }
 
-// Create a singleton instance
-export const chatAPI = new ChatAPI()
-
 // Helper function to convert API message to local message format
-export function convertApiMessage(apiMessage: ApiMessage): Message[] {
+function convertApiMessage(apiMessage: ApiMessage): Message[] {
   // Convert the API message format to our local format
   // Each API message contains both user input and assistant response
   const messages: Message[] = []
@@ -410,21 +426,32 @@ export function convertApiMessage(apiMessage: ApiMessage): Message[] {
     messageId: apiMessage.message_id.toString(),
   })
 
-  // Add assistant message
+  // Process request_id (data product request)
+  let dpRequestId: string | undefined = undefined
+
+  console.log("Processing API message request_id:", apiMessage.request_id)
+
+  if (apiMessage.request_id && apiMessage.request_id > 0) {
+    dpRequestId = apiMessage.request_id.toString()
+    console.log("Found request_id:", dpRequestId)
+  }
+
+  // Add assistant message with request_id
   messages.push({
-    id: `${apiMessage.message_id}`,
+    id: `assistant-${apiMessage.message_id}`,
     content: apiMessage.response,
     role: "assistant",
     timestamp: new Date(), // Use current time since API doesn't provide timestamps
     messageId: apiMessage.message_id.toString(),
     feedback: apiMessage.feedback,
+    dpRequestId: dpRequestId,
   })
 
   return messages
 }
 
 // Helper function to convert API conversation to local chat format
-export function convertApiConversation(apiConversation: ApiConversation) {
+function convertApiConversation(apiConversation: ApiConversation) {
   console.log("Converting API conversation:", apiConversation)
 
   // Flatten all messages from API format
@@ -454,9 +481,8 @@ export function convertApiConversation(apiConversation: ApiConversation) {
   return convertedChat
 }
 
+// Create a singleton instance
+const chatAPI = new ChatAPI()
 
-const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
-});
-
-export default api;
+// Export the functions and instance
+export { chatAPI, convertApiConversation }

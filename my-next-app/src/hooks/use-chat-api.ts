@@ -139,11 +139,14 @@ export function useChatAPI() {
       // Step 2: Send the first message to get AI response
       const aiResponse = await chatAPI.sendMessage(firstMessage, newConversation.conversation_id)
 
-      // Process download link - only include if it's not "no" and is a valid string
-      let downloadLink: string | undefined = undefined
-      if (aiResponse.download_link && aiResponse.download_link !== "no" && aiResponse.download_link.trim() !== "") {
-        downloadLink = aiResponse.download_link
-        console.log("Found download link in new chat:", downloadLink)
+      // Process request_id
+      let dpRequestId: string | undefined = undefined
+
+      console.log("Processing request_id from new chat response:", aiResponse.request_id)
+
+      if (aiResponse.request_id && aiResponse.request_id > 0) {
+        dpRequestId = aiResponse.request_id.toString()
+        console.log("Found request_id in new chat:", dpRequestId)
       }
 
       // Step 3: Create the chat object with both messages
@@ -161,13 +164,13 @@ export function useChatAPI() {
             messageId: aiResponse.message_id.toString(),
           },
           {
-            id: `${aiResponse.message_id}`,
+            id: `assistant-${aiResponse.message_id}`,
             content: aiResponse.response,
             role: "assistant",
             timestamp: new Date(),
             messageId: aiResponse.message_id.toString(),
             feedback: aiResponse.feedback,
-            downloadLink: downloadLink,
+            dpRequestId: dpRequestId,
           },
         ],
       }
@@ -269,11 +272,14 @@ export function useChatAPI() {
       // Send to API
       const aiResponse = await chatAPI.sendMessage(content, chatId)
 
-      // Process download link - only include if it's not "no" and is a valid string
-      let downloadLink: string | undefined = undefined
-      if (aiResponse.download_link && aiResponse.download_link !== "no" && aiResponse.download_link.trim() !== "") {
-        downloadLink = aiResponse.download_link
-        console.log("Found download link in message response:", downloadLink)
+      // Process request_id
+      let dpRequestId: string | undefined = undefined
+
+      console.log("Processing request_id from message response:", aiResponse.request_id)
+
+      if (aiResponse.request_id && aiResponse.request_id > 0) {
+        dpRequestId = aiResponse.request_id.toString()
+        console.log("Found request_id in message response:", dpRequestId)
       }
 
       // Create real messages using the API response format
@@ -286,13 +292,13 @@ export function useChatAPI() {
       }
 
       const assistantMessage: Message = {
-        id: `${aiResponse.message_id}`,
+        id: `assistant-${aiResponse.message_id}`,
         content: aiResponse.response,
         role: "assistant",
         timestamp: new Date(),
         messageId: aiResponse.message_id.toString(),
         feedback: aiResponse.feedback,
-        downloadLink: downloadLink,
+        dpRequestId: dpRequestId,
       }
 
       // Update chat with real messages

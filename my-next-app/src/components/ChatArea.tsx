@@ -52,64 +52,70 @@ export function ChatArea({
       <ScrollArea ref={scrollAreaRef} className="flex-1 min-h-0">
         <div className="p-4">
           <div className="max-w-1xl mx-auto space-y-4">
-            {messages.map((message) => (
-              <div key={message.id}>
-                <div className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
-                  <div
-                    className={`max-w-[70%] rounded-2xl px-4 py-3 ${
-                      message.role === "user"
-                        ? "bg-blue-600 text-white rounded-br-md"
-                        : "bg-gray-200 text-gray-800 rounded-bl-md"
-                    } ${message.content === "Processing..." ? "animate-pulse" : ""}`}
-                  >
-                    <p className="text-sm leading-relaxed">
-                      {message.content}
-                      {message.content === "Processing..." && (
-                        <span className="inline-block ml-1">
-                          <span className="animate-pulse">.</span>
-                          <span className="animate-pulse animation-delay-200">.</span>
-                          <span className="animate-pulse animation-delay-400">.</span>
-                        </span>
-                      )}
-                    </p>
-                    <p className={`text-xs mt-1 ${message.role === "user" ? "text-blue-100" : "text-gray-500"}`}>
-                      {message.timestamp.toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </p>
+            {messages.map((message, index) => {
+              return (
+                <div key={message.id}>
+                  <div className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
+                    <div
+                      className={`max-w-[70%] rounded-2xl px-4 py-3 ${
+                        message.role === "user"
+                          ? "bg-blue-600 text-white rounded-br-md"
+                          : "bg-gray-200 text-gray-800 rounded-bl-md"
+                      } ${message.content === "Processing..." ? "animate-pulse" : ""}`}
+                    >
+                      <div className="text-sm leading-relaxed">
+                        {message.content === "Processing..." ? (
+                          <>
+                            Processing
+                            <span className="inline-block ml-1">
+                              <span className="animate-pulse">.</span>
+                              <span className="animate-pulse animation-delay-200">.</span>
+                              <span className="animate-pulse animation-delay-400">.</span>
+                            </span>
+                          </>
+                        ) : (
+                          message.content
+                        )}
+                      </div>
+                      <p className={`text-xs mt-1 ${message.role === "user" ? "text-blue-100" : "text-gray-500"}`}>
+                        {message.timestamp.toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </p>
+                    </div>
                   </div>
+
+                  {/* Show data product download if request_id exists */}
+                  {message.role === "assistant" &&
+                    message.content !== "Processing..." &&
+                    message.dpRequestId &&
+                    message.dpRequestId.trim() !== "" && (
+                      <div className="flex justify-start">
+                        <div className="max-w-[70%] ml-0">
+                          <DownloadLinks dpRequestId={message.dpRequestId} />
+                        </div>
+                      </div>
+                    )}
+
+                  {/* Show feedback component for assistant messages */}
+                  {message.role === "assistant" &&
+                    message.content !== "Processing..." &&
+                    message.messageId &&
+                    onFeedback && (
+                      <div className="flex justify-start">
+                        <div className="max-w-[70%] ml-0">
+                          <MessageFeedback
+                            messageId={message.messageId}
+                            onFeedback={onFeedback}
+                            currentFeedback={message.feedback?.rating}
+                          />
+                        </div>
+                      </div>
+                    )}
                 </div>
-
-                {/* Show download link for assistant messages with a valid link */}
-                {message.role === "assistant" &&
-                  message.content !== "Processing..." &&
-                  message.downloadLink &&
-                  message.downloadLink !== "no" && (
-                    <div className="flex justify-start">
-                      <div className="max-w-[70%] ml-0">
-                        <DownloadLinks link={message.downloadLink} />
-                      </div>
-                    </div>
-                  )}
-
-                {/* Show feedback component for assistant messages (but not processing messages) */}
-                {message.role === "assistant" &&
-                  message.content !== "Processing..." &&
-                  message.id &&
-                  onFeedback && (
-                    <div className="flex justify-start">
-                      <div className="max-w-[70%] ml-0">
-                        <MessageFeedback
-                          messageId={message.id}
-                          onFeedback={onFeedback}
-                          currentFeedback={message.feedback?.rating}
-                        />
-                      </div>
-                    </div>
-                  )}
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       </ScrollArea>
