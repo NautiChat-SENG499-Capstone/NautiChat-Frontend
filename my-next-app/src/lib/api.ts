@@ -486,3 +486,10 @@ const chatAPI = new ChatAPI()
 
 // Export the functions and instance
 export { chatAPI, convertApiConversation }
+
+// API for the admin
+const api = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
+});
+
+export default api;
