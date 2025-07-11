@@ -109,7 +109,7 @@ export default function OceansChatBot() {
         <ChatArea
           messages={currentChat?.messages || []}
           title="What do you want to know?"
-          example="What is the average temperature in Cambridge bay?"
+          example="How thick was the ice in Cambridge Bay in February this year?"
           onFeedback={handleFeedback}
         />
 
