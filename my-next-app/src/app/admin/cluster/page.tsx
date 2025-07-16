@@ -103,8 +103,11 @@ export default function ClusteredQueriesAccordionGridPage() {
                       className="w-full text-left px-4 py-3 flex items-center justify-between hover:bg-gray-50 transition"
                     >
                       <span className="font-semibold text-blue-600 text-sm">
-                        {clusterId === '-1' ? 'Uncategorized' : `Group ${clusterId}`}
+                        {clusterId === '-1'
+                          ? 'Uncategorized'
+                          : clusters[clusterId]?.[0] || `Group ${clusterId}`}
                       </span>
+
                       <span className="text-xs text-gray-500">
                         {clusters[clusterId].length} queries
                       </span>
@@ -147,8 +150,11 @@ export default function ClusteredQueriesAccordionGridPage() {
             >
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-lg font-bold text-blue-600">
-                  {modalCluster === '-1' ? 'Uncategorized' : `Group ${modalCluster}`}
+                  {modalCluster === '-1'
+                    ? 'Uncategorized'
+                    : clusters[modalCluster]?.[0] || `Group ${modalCluster}`}
                 </h2>
+
                 <button
                   onClick={() => setModalCluster(null)}
                   className="text-sm text-gray-500 hover:text-gray-700"
