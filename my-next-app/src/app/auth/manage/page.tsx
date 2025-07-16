@@ -27,12 +27,15 @@ export default function ManageAccount() {
       return
     }
 
-    // Load user data
-    setFormData({
-      name: user?.name || "",
-      email: user?.email || "",
-      oncToken: localStorage.getItem("onc_token") || "",
-    })
+    if (user) {
+      setFormData({
+        name: user.name || "",
+        email: user.email || "",
+        // You might store the ONC token per-user on your backend in the future,
+        // but for now, we'll continue using localStorage.
+        oncToken: localStorage.getItem("onc_token") || "",
+      })
+    }
   }, [isLoggedIn, user, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -41,15 +44,31 @@ export default function ManageAccount() {
     setMessage("")
 
     try {
-      // Save ONC token to localStorage
+      // 1. Actually call the backend to update user information
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
+        method: 'PATCH', // Use PATCH to update parts of the user profile
+        headers: {
+          'Content-Type': 'application/json',
+          // Assuming your AuthContext provides the token for authorization
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          onc_token: formData.oncToken, // Send the token to be saved on the backend
+        }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.detail || "Failed to update account.");
+      }
+      
+      // 2. Save ONC token to localStorage for immediate use
       localStorage.setItem("onc_token", formData.oncToken)
 
-      // Here you would typically make an API call to update user info
-      // await updateUserProfile(formData)
-
       setMessage("Account updated successfully!")
-    } catch (error) {
-      setMessage("Failed to update account. Please try again.")
+    } catch (error: any) {
+      setMessage(error.message || "An unexpected error occurred. Please try again.")
     } finally {
       setIsLoading(false)
     }
@@ -62,8 +81,9 @@ export default function ManageAccount() {
     })
   }
 
-  if (!isLoggedIn) {
-    return <div>Loading...</div>
+  // A better loading state while waiting for user data
+  if (!user) {
+    return <div>Loading account details...</div>
   }
 
   return (
@@ -76,6 +96,19 @@ export default function ManageAccount() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Added Name field */}
+              <div className="space-y-2">
+                <Label htmlFor="name">Name</Label>
+                <Input
+                  id="name"
+                  name="name"
+                  type="text"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  placeholder="Your name"
+                />
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -83,8 +116,8 @@ export default function ManageAccount() {
                   name="email"
                   type="email"
                   value={formData.email}
-                  onChange={handleInputChange}
-                  placeholder="your.email@example.com"
+                  readOnly // Email is the user's identifier, so it should not be editable
+                  className="bg-gray-100 cursor-not-allowed"
                 />
               </div>
 
@@ -96,7 +129,7 @@ export default function ManageAccount() {
                   type="password"
                   value={formData.oncToken}
                   onChange={handleInputChange}
-                  placeholder="New Ocean Networks Canada API token"
+                  placeholder="Enter new ONC API token"
                 />
                 <p className="text-sm text-gray-600">
                   Your ONC token is used to access Ocean Networks Canada data services.
