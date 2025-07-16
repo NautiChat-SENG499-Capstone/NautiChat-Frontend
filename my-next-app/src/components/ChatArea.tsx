@@ -1,39 +1,48 @@
-"use client"
+"use client";
 
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { MessageFeedback } from "./MessageFeedback"
-import { DownloadLinks } from "./DownloadLinks"
-import type { Message } from "@/types/chat"
-import { useEffect, useRef } from "react"
+import { useEffect, useRef } from "react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { MessageFeedback } from "./MessageFeedback";
+import { DownloadLinks } from "./DownloadLinks";
+import { AnimatedProcessingText } from "./AnimatedProcessingText";
+import type { Message } from "@/types/chat";
 import TTSButton from "@/components/TTSButton";
 
 interface ChatAreaProps {
-  messages?: Message[]
-  title?: string
-  example?: string
-  onFeedback?: (messageId: string, rating: number, comment?: string) => Promise<void>
+  messages?: Message[];
+  title?: string;
+  example?: string;
+  onFeedback?: (
+    messageId: string,
+    rating: number,
+    comment?: string
+  ) => Promise<void>;
+  isLoading?: boolean;
+  streamingResponse?: string;
 }
 
 export function ChatArea({
   messages = [],
   title = "What do you want to know?",
-  example = "What is the average temperature in Cambridge bay?",
+  example = "What is the average temperature in Cambridge Bay?",
   onFeedback,
+  isLoading = false,
+  streamingResponse = "",
 }: ChatAreaProps) {
-  const scrollAreaRef = useRef<HTMLDivElement>(null)
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom when new messages are added
   useEffect(() => {
     if (scrollAreaRef.current) {
-      const scrollContainer = scrollAreaRef.current.querySelector("[data-radix-scroll-area-viewport]")
+      const scrollContainer = scrollAreaRef.current.querySelector(
+        "[data-radix-scroll-area-viewport]"
+      );
       if (scrollContainer) {
-        scrollContainer.scrollTop = scrollContainer.scrollHeight
+        scrollContainer.scrollTop = scrollContainer.scrollHeight;
       }
     }
-  }, [messages])
+  }, [messages, streamingResponse]);
 
-  // Show welcome screen if no messages
-  if (messages.length === 0) {
+  if (messages.length === 0 && !isLoading) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-8 min-h-0">
         <div className="max-w-2xl w-full text-center space-y-8">
@@ -44,10 +53,9 @@ export function ChatArea({
           </div>
         </div>
       </div>
-    )
+    );
   }
 
-  // Show chat messages with proper scrolling
   return (
     <div className="flex-1 flex flex-col min-h-0">
       <ScrollArea ref={scrollAreaRef} className="flex-1 min-h-0">
@@ -106,15 +114,13 @@ export function ChatArea({
                       </div>
                     )}
 
-                  {/* Show feedback component for assistant messages */}
                   {message.role === "assistant" &&
-                    message.content !== "Processing..." &&
-                    message.messageId &&
+                    message.id &&
                     onFeedback && (
                       <div className="flex justify-start">
                         <div className="max-w-[70%] ml-0">
                           <MessageFeedback
-                            messageId={message.messageId}
+                            messageId={message.id}
                             onFeedback={onFeedback}
                             currentFeedback={message.feedback?.rating}
                           />
@@ -122,11 +128,31 @@ export function ChatArea({
                       </div>
                     )}
                 </div>
-              )
+              );
             })}
+
+            {/* Use AnimatedProcessingText when loading */}
+            {isLoading && !streamingResponse && (
+              <div className="flex justify-start">
+                <div className="max-w-[70%] min-h-[40px] flex items-center rounded-2xl px-4 py-3 bg-gray-200 rounded-bl-md">
+                  <AnimatedProcessingText />
+                </div>
+              </div>
+            )}
+
+            {/* Display the streaming response */}
+            {streamingResponse && (
+              <div className="flex justify-start">
+                <div className="max-w-[70%] rounded-2xl px-4 py-3 bg-gray-200 text-gray-800 rounded-bl-md">
+                  <p className="text-sm leading-relaxed">
+                    {streamingResponse}
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </ScrollArea>
     </div>
-  )
+  );
 }

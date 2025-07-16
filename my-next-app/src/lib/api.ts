@@ -438,7 +438,7 @@ function convertApiMessage(apiMessage: ApiMessage): Message[] {
 
   // Add assistant message with request_id
   messages.push({
-    id: `assistant-${apiMessage.message_id}`,
+    id: `${apiMessage.message_id}`,
     content: apiMessage.response,
     role: "assistant",
     timestamp: new Date(), // Use current time since API doesn't provide timestamps

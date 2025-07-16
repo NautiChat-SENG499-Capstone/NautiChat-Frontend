@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { ChatHeader } from "@/components/ChatHeader"
 import { ChatSidebar } from "@/components/ChatSidebar"
@@ -28,54 +28,57 @@ export default function OceansChatBot() {
   const { completedDownloads, dismissCompleted, activeDownloads } = useDownloadManager()
 
   const handleNewChat = () => {
-    setCurrentChat(null)
-  }
+    setCurrentChat(null);
+  };
 
   const handleSelectChat = async (chatId: string) => {
     try {
-      await loadChat(chatId)
+      await loadChat(chatId);
     } catch (err) {
-      console.error("Failed to load chat:", err)
+      console.error("Failed to load chat:", err);
     }
-  }
+  };
 
   const handleSendMessage = async (content: string) => {
     if (!currentChat) {
       try {
-        await createChat(content)
+        await createChat(content);
       } catch (err) {
-        console.error("Failed to create chat:", err)
+        console.error("Failed to create chat:", err);
       }
     } else {
       try {
-        await sendMessage(content, currentChat.id)
+        await sendMessage(content, currentChat.id);
       } catch (err) {
-        console.error("Failed to send message:", err)
+        console.error("Failed to send message:", err);
       }
     }
-  }
+  };
 
-  const handleFeedback = async (messageId: string, rating: number, comment?: string) => {
+  const handleFeedback = async (
+    messageId: string,
+    rating: number,
+    comment?: string
+  ) => {
     try {
-      await submitFeedback(messageId, rating, comment)
+      await submitFeedback(messageId, rating, comment);
     } catch (err) {
-      console.error("Failed to submit feedback:", err)
+      console.error("Failed to submit feedback:", err);
     }
-  }
+  };
 
   const handleRetryConnection = async () => {
-    await initializeApp()
-  }
+    await initializeApp();
+  };
 
   useEffect(() => {
     if (error) {
-      console.error("Chat API Error:", error)
+      console.error("Chat API Error:", error);
     }
-  }, [error])
+  }, [error]);
 
   return (
     <div className="flex h-screen bg-gray-100">
-      {/* Sidebar with proper height constraints */}
       <div className="flex-shrink-0 h-full">
         <ChatSidebar
           chats={chats}
@@ -86,14 +89,11 @@ export default function OceansChatBot() {
         />
       </div>
 
-      {/* Main content area with proper flex layout */}
       <div className="flex-1 flex flex-col min-w-0 h-full">
-        {/* Fixed header */}
         <div className="flex-shrink-0">
           <ChatHeader />
         </div>
 
-        {/* Connection status (if needed) */}
         {connectionStatus !== "connected" && (
           <div className="flex-shrink-0">
             <ConnectionStatus
@@ -105,15 +105,15 @@ export default function OceansChatBot() {
           </div>
         )}
 
-        {/* Scrollable chat area */}
+        {/* Pass isLoading prop to ChatArea */}
         <ChatArea
           messages={currentChat?.messages || []}
+          isLoading={isLoading}
           title="What do you want to know?"
           example="How thick was the ice in Cambridge Bay in February this year?"
           onFeedback={handleFeedback}
         />
 
-        {/* Fixed input at bottom */}
         <ChatInput
           onSendMessage={handleSendMessage}
           disabled={isLoading || connectionStatus !== "connected"}
@@ -121,14 +121,13 @@ export default function OceansChatBot() {
             connectionStatus === "error"
               ? "Connection error..."
               : connectionStatus === "connecting"
-                ? "Connecting..."
-                : isLoading
-                  ? "Processing..."
-                  : "Ask anything ..."
+              ? "Connecting..."
+              : isLoading
+              ? "Processing..."
+              : "Ask anything ..."
           }
         />
 
-        {/* Error message (if needed) */}
         {error && connectionStatus === "connected" && (
           <div className="flex-shrink-0 bg-red-100 border border-red-400 text-red-700 px-4 py-3 mx-4 mb-4 rounded">
             <strong>Error:</strong> {error}
@@ -154,5 +153,5 @@ export default function OceansChatBot() {
         )
       })}
     </div>
-  )
+  );
 }
