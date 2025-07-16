@@ -4,8 +4,9 @@ import { useEffect, useRef } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { MessageFeedback } from "./MessageFeedback";
 import { DownloadLinks } from "./DownloadLinks";
-import { AnimatedProcessingText } from "./AnimatedProcessingText"; // Import the new component
+import { AnimatedProcessingText } from "./AnimatedProcessingText";
 import type { Message } from "@/types/chat";
+import TTSButton from "@/components/TTSButton";
 
 interface ChatAreaProps {
   messages?: Message[];
@@ -94,6 +95,15 @@ export function ChatArea({
                     </div>
                   </div>
 
+
+                  {message.role === "assistant" && (
+                    <div className="flex justify-start">
+                      <div className="max-w-[70%] ml-0">
+                        <TTSButton text={message.content} />
+                      </div>
+                    </div>
+                  )}
+
                   {message.role === "assistant" &&
                     message.downloadLink &&
                     message.downloadLink !== "no" && (
@@ -130,6 +140,7 @@ export function ChatArea({
               </div>
             )}
 
+            {/* Display the streaming response */}
             {streamingResponse && (
               <div className="flex justify-start">
                 <div className="max-w-[70%] rounded-2xl px-4 py-3 bg-gray-200 text-gray-800 rounded-bl-md">
