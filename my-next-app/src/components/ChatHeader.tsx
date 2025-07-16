@@ -2,7 +2,6 @@
 
 import { useAuth } from "@/context/AuthContext"
 import { Button } from "@/components/ui/button"
-import { TerritorialAcknowledgement } from "@/components/TerritorialAcknowledgement"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -59,7 +58,6 @@ export function ChatHeader() {
             Ask questions about the data collected from cabled observatories, mobile platforms and autonomous
             instruments.
           </p>
-          <TerritorialAcknowledgement />
           <p className="text-sm opacity-75">Built with Meta Llama 3</p>
         </div>
 

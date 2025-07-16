@@ -7,6 +7,7 @@ import { DownloadLinks } from "./DownloadLinks";
 import { AnimatedProcessingText } from "./AnimatedProcessingText";
 import type { Message } from "@/types/chat";
 import TTSButton from "@/components/TTSButton";
+import { TerritorialAcknowledgement } from "@/components/TerritorialAcknowledgement"
 
 interface ChatAreaProps {
   messages?: Message[];
@@ -51,6 +52,7 @@ export function ChatArea({
             <p className="text-gray-600 font-medium">Example:</p>
             <p className="text-gray-800">{example}</p>
           </div>
+          <TerritorialAcknowledgement />
         </div>
       </div>
     );
