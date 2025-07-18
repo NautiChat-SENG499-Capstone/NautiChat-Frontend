@@ -6,11 +6,11 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import PasswordInput from "./PasswordInput"
-import { useAuth } from "@/context/AuthContext" // ✅ Import your Auth Context
+import { useAuth } from "@/context/AuthContext"
 
 export default function RegisterForm() {
   const router = useRouter()
-  const { login } = useAuth() // ✅ Get login function from context
+  const { login } = useAuth()
 
   const [formData, setFormData] = useState({
     email: "",

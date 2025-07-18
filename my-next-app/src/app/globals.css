@@ -120,3 +120,22 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer base {
+  /* Define the animation keyframes for the text wave */
+  @keyframes wave-text-animation {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-6px);
+    }
+  }
+
+  /* Apply the animation to the utility class */
+  .animate-wave-text {
+    display: inline-block; /* Ensures transform is applied correctly */
+    animation: wave-text-animation 1.4s infinite ease-in-out;
+  }
+}

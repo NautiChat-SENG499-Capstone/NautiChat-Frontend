@@ -36,12 +36,12 @@ export default function LoginForm() {
       }
 
       const data = await res.json()
-      login(data.access_token, false) // ✅ Regular login (not guest)
+      login(data.access_token, false)
 
 
       const userRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
       headers: {
-        Authorization: `Bearer ${data.access_token}`, 
+        Authorization: `Bearer ${data.access_token}`,
       },
     });
 
@@ -58,11 +58,29 @@ export default function LoginForm() {
     }
   }
 
-  const handleGuestLogin = () => {
+  const handleGuestLogin = async () => {
+    setError(null)
     setGuestLoading(true)
-    login("guest-access-token", true) // ✅ Guest login, pass true
-    localStorage.setItem("is_admin", "false")
-    router.push("/chat")
+    try {
+      // Call the guest login endpoint provided in the documentation
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/guest-login`, {
+        method: "POST", // The endpoint uses the POST method
+      })
+
+      if (!res.ok) {
+        throw new Error("Could not log in as guest. Please try again.")
+      }
+
+      const data = await res.json() // The API returns an access_token
+      login(data.access_token, true) // Use the token from the API
+      localStorage.setItem("is_admin", "false") // Guests are never admins
+      router.push("/chat")
+
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setGuestLoading(false)
+    }
   }
 
   return (
