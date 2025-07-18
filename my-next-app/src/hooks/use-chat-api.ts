@@ -17,35 +17,46 @@ export function useChatAPI() {
   const isInitializing = useRef(false);
 
   const initializeApp = async () => {
-    if (isInitializing.current || isInitialized.current) {
-      return;
-    }
+    if (isInitializing.current || isInitialized.current) return;
+
     try {
       isInitializing.current = true;
       setIsLoading(true);
       setError(null);
       setConnectionStatus("connecting");
+
       const isConnected = await chatAPI.testConnection();
+
       if (isConnected) {
         setConnectionStatus("connected");
         await loadChats();
+
+        // Try to restore last chat
+        const lastChatId = localStorage.getItem("currentChatId");
+        if (lastChatId) {
+          try {
+            await loadChat(lastChatId);
+          } catch (err) {
+            console.warn("Failed to restore previous chat", err);
+            localStorage.removeItem("currentChatId");
+          }
+        }
+
         isInitialized.current = true;
       } else {
         setConnectionStatus("error");
-        setError(
-          "Unable to connect to the API server. Please check your connection."
-        );
+        setError("Unable to connect to the API server. Please check your connection.");
       }
     } catch (err) {
       setConnectionStatus("error");
-      const errorMessage =
-        err instanceof Error ? err.message : "Failed to initialize app";
+      const errorMessage = err instanceof Error ? err.message : "Failed to initialize app";
       setError(errorMessage);
     } finally {
       setIsLoading(false);
       isInitializing.current = false;
     }
   };
+
 
   const loadChats = async () => {
     try {

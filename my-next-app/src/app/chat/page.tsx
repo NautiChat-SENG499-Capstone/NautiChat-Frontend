@@ -25,6 +25,7 @@ export default function OceansChatBot() {
 
   const handleNewChat = () => {
     setCurrentChat(null);
+    localStorage.removeItem("currentChatId"); // Clear stored chat ID
   };
 
   const handleSelectChat = async (chatId: string) => {
@@ -67,6 +68,31 @@ export default function OceansChatBot() {
     await initializeApp();
   };
 
+  // 🧠 Restore chat on first load
+  useEffect(() => {
+    const init = async () => {
+      await initializeApp();
+      const storedId = localStorage.getItem("currentChatId");
+      if (storedId) {
+        try {
+          await loadChat(storedId);
+        } catch (err) {
+          console.warn("Failed to load stored chat:", err);
+          localStorage.removeItem("currentChatId");
+        }
+      }
+    };
+    init();
+  }, []);
+
+  //vSave current chat to localStorage when it changes
+  useEffect(() => {
+    if (currentChat?.id) {
+      localStorage.setItem("currentChatId", currentChat.id);
+    }
+  }, [currentChat?.id]);
+
+  // Log error (optional)
   useEffect(() => {
     if (error) {
       console.error("Chat API Error:", error);
@@ -101,7 +127,6 @@ export default function OceansChatBot() {
           </div>
         )}
 
-        {/* Pass isLoading prop to ChatArea */}
         <ChatArea
           messages={currentChat?.messages || []}
           isLoading={isLoading}
