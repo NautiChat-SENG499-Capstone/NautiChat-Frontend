@@ -9,6 +9,7 @@ export interface Message {
     comment: string
   }
   downloadLink?: string
+  onc_api_url?: string
 }
 
 export interface Chat {
@@ -36,6 +37,7 @@ export interface ApiMessage {
     comment: string
   }
   download_link?: string
+  onc_api_url?: string
 }
 
 export interface ApiConversation {

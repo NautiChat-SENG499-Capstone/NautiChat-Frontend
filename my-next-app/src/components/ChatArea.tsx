@@ -7,6 +7,7 @@ import { DownloadLinks } from "./DownloadLinks";
 import { AnimatedProcessingText } from "./AnimatedProcessingText";
 import type { Message } from "@/types/chat";
 import TTSButton from "@/components/TTSButton";
+import OncApiQueryButton from "@/components/OncApiQueryButton";
 
 interface ChatAreaProps {
   messages?: Message[];
@@ -70,6 +71,8 @@ export function ChatArea({
                   })
                 : "";
 
+              console.log("url is " + message.onc_api_url);
+
               return (
                 <div key={message.id}>
                   <div
@@ -95,14 +98,18 @@ export function ChatArea({
                     </div>
                   </div>
 
-
+                  
                   {message.role === "assistant" && (
                     <div className="flex justify-start">
                       <div className="max-w-[70%] ml-0">
-                        <TTSButton text={message.content} />
+                        <div className="flex gap-2 mt-1">
+                          <TTSButton text={message.content} />
+                          <OncApiQueryButton oncApiUrl={message.onc_api_url} />
+                        </div>
                       </div>
                     </div>
                   )}
+
 
                   {message.role === "assistant" &&
                     message.downloadLink &&

@@ -418,6 +418,7 @@ export function convertApiMessage(apiMessage: ApiMessage): Message[] {
     timestamp: new Date(), // Use current time since API doesn't provide timestamps
     messageId: apiMessage.message_id.toString(),
     feedback: apiMessage.feedback,
+    onc_api_url: apiMessage.onc_api_url,
   })
 
   return messages
