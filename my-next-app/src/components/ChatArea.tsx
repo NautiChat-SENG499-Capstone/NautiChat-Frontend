@@ -95,7 +95,6 @@ export function ChatArea({
                     </div>
                   </div>
 
-
                   {message.role === "assistant" && (
                     <div className="flex justify-start">
                       <div className="max-w-[70%] ml-0">
@@ -132,7 +131,7 @@ export function ChatArea({
             })}
 
             {/* Use AnimatedProcessingText when loading */}
-            {isLoading && !streamingResponse && (
+            {isLoading && !streamingResponse && messages.length > 0 && (
               <div className="flex justify-start">
                 <div className="max-w-[70%] min-h-[40px] flex items-center rounded-2xl px-4 py-3 bg-gray-200 rounded-bl-md">
                   <AnimatedProcessingText />
