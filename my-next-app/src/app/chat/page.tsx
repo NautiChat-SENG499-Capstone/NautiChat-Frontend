@@ -1,12 +1,13 @@
 "use client";
 
 import { ChatHeader } from "@/components/ChatHeader";
-import { ChatSidebar } from "@/components/ChatSidebar";
+import { ChatSidebar } from "@/components/ChatSidebar"; 
 import { ChatArea } from "@/components/ChatArea";
 import { ChatInput } from "@/components/ChatInput";
 import { ConnectionStatus } from "@/components/ConnectionStatus";
 import { useChatAPI } from "@/hooks/use-chat-api";
 import { useEffect } from "react";
+import type { Message, Chat } from "@/types/chat";
 
 export default function OceansChatBot() {
   const {
@@ -37,10 +38,28 @@ export default function OceansChatBot() {
 
   const handleSendMessage = async (content: string) => {
     if (!currentChat) {
+      const tempUserMessage: Message = {
+        id: "temp-user-msg-" + Date.now(),
+        role: "user",
+        content,
+        timestamp: new Date(),
+      };
+      
+      const tempChat: Chat = {
+        id: "temp-chat-" + Date.now(),
+        title: content.substring(0, 40),
+        messages: [tempUserMessage],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      setCurrentChat(tempChat);
+
       try {
         await createChat(content);
       } catch (err) {
         console.error("Failed to create chat:", err);
+        setCurrentChat(null);
       }
     } else {
       try {
@@ -50,6 +69,7 @@ export default function OceansChatBot() {
       }
     }
   };
+
 
   const handleFeedback = async (
     messageId: string,
@@ -75,6 +95,7 @@ export default function OceansChatBot() {
 
   return (
     <div className="flex h-screen bg-gray-100">
+      {/* Static Sidebar */}
       <div className="flex-shrink-0 h-full">
         <ChatSidebar
           chats={chats}
@@ -85,6 +106,7 @@ export default function OceansChatBot() {
         />
       </div>
 
+      {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 h-full">
         <div className="flex-shrink-0">
           <ChatHeader />
@@ -101,7 +123,6 @@ export default function OceansChatBot() {
           </div>
         )}
 
-        {/* Pass isLoading prop to ChatArea */}
         <ChatArea
           messages={currentChat?.messages || []}
           isLoading={isLoading}
