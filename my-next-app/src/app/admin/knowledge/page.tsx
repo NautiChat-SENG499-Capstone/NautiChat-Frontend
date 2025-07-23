@@ -9,11 +9,12 @@ export default function KnowledgeBasePage() {
   const [activeTab, setActiveTab] = useState<'qa' | 'upload' | 'view'>('qa');
   const [uploadFiles, setUploadFiles] = useState<FileList | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [knowledgeEntries, setKnowledgeEntries] = useState<{ name: string, url?: string, file?: File }[]>([]);
+  const [knowledgeEntries, setKnowledgeEntries] = useState<{ source: string; id: number; usage_count?: number }[]>([]);
   const [popoverVisible, setPopoverVisible] = useState(false);
   const [popoverPosition, setPopoverPosition] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
-  const [selectedFile, setSelectedFile] = useState<{ name: string, url?: string, file?: File } | null>(null);
-  const [source, setSource] = useState('');
+  const [selectedFile, setSelectedFile] = useState<{ source: string; id: number } | null>(null);
+  const [textSource, setTextSource] = useState('');
+  const [uploadSource, setUploadSource] = useState('');
   const [text, setText] = useState('');
 
   useEffect(() => {
@@ -28,7 +29,7 @@ export default function KnowledgeBasePage() {
     async function fetchDocuments() {
       try {
         const accessToken = localStorage.getItem('access_token');
-        const res = await api.get('/admin/documents/pdf', {
+        const res = await api.get('/admin/documents', {
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },
@@ -50,81 +51,81 @@ export default function KnowledgeBasePage() {
       return;
     }
 
-    try {
-      await api.post(
-        '/admin/documents/raw-data',
-        null,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-          params: {
-            input_text: text,
-            source: source,
-          },
-        }
-      );
-
-      alert('✅ Text submitted successfully!');
-      setText('');
-      setSource('');
-    } catch (err: any) {
-      console.error('Submit error:', err.response || err);
-      alert('Failed to submit text.');
-    }
-  };
-
-  const handleUploadSubmit = async () => {
-    if (!uploadFiles || uploadFiles.length === 0) return;
-
-    const accessToken = localStorage.getItem('access_token');
-    if (!accessToken) {
-      alert('No access token found. Please log in again.');
-      return;
-    }
-
-    if (!source.trim()) {
-      alert('Please enter a name (source) for the uploaded document.');
+    if (!textSource.trim() || !text.trim()) {
+      alert('Please fill in both the source and the text.');
       return;
     }
 
     try {
       const formData = new FormData();
-      formData.append('file', uploadFiles[0]);
+      formData.append('source', textSource);
+      formData.append('input_text', text);
 
-      await api.post('/admin/documents/pdf', formData, {
+      await api.post('/admin/documents/raw-data', formData, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'multipart/form-data',
-        },
-        params: {
-          source: source.trim(),
+          // Do NOT set 'Content-Type' manually — let Axios set it automatically
         },
       });
 
-      alert('✅ Document uploaded successfully!');
-      setUploadFiles(null);
-      setSource('');
-      setActiveTab('view');
+      alert('✅ Text submitted successfully!');
+      setText('');
+      setTextSource('');
     } catch (err: any) {
-      console.error('Upload error:', err.response || err);
-      alert('Upload failed.');
-      return; // stop here if upload failed
+      console.error('Submit error:', err.response || err);
+      alert('Failed to submit text.');
     }
+  }
 
-    // try fetching after upload, but don't confuse it with upload failure
-    try {
-      const res = await api.get('/admin/documents/pdf', {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
-      setKnowledgeEntries(res.data);
-    } catch (fetchErr) {
-      console.warn('Upload succeeded, but failed to refresh document list:', fetchErr);
-      alert('Upload succeeded, but failed to refresh document list.');
-    }
-  };
+
+  const handleUploadSubmit = async () => {
+  if (!uploadFiles || uploadFiles.length === 0) {
+    alert('Please select a file to upload.');
+    return;
+  }
+
+  const accessToken = localStorage.getItem('access_token');
+  if (!accessToken) {
+    alert('No access token found. Please log in again.');
+    return;
+  }
+
+  if (!uploadSource.trim()) {
+    alert('Please enter a name (source) for the uploaded document.');
+    return;
+  }
+
+  try {
+    const file = uploadFiles[0]; // Get the first (and only) selected file
+    const formData = new FormData();
+    formData.append('source', uploadSource);
+    formData.append('file', file); // Make sure this is a File object
+
+    await api.post('/admin/documents/pdf', formData, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        // DO NOT set 'Content-Type' manually – let axios handle it
+      },
+    });
+
+    alert('✅ Document uploaded successfully!');
+    setUploadFiles(null);
+    setUploadSource('');
+    setActiveTab('view');
+
+    // Refresh the document list
+    const res = await api.get('/admin/documents', {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    setKnowledgeEntries(res.data);
+
+  } catch (err: any) {
+    console.error('Upload error:', err.response || err);
+    alert('Upload failed.');
+  }
+};
 
 
   return (
@@ -132,7 +133,6 @@ export default function KnowledgeBasePage() {
       <AdminLayout>
         <h1 className="text-2xl font-bold text-gray-800 mb-6">Manage Knowledge Base</h1>
 
-        {/* Tabs */}
         <div className="flex flex-wrap gap-4 mb-8">
           <button
             onClick={() => setActiveTab('qa')}
@@ -166,7 +166,6 @@ export default function KnowledgeBasePage() {
           </button>
         </div>
 
-        {/* Content */}
         <div className="bg-white shadow rounded-xl p-6">
           {activeTab === 'qa' && (
             <form className="space-y-4" onSubmit={handleTextSubmit}>
@@ -177,8 +176,8 @@ export default function KnowledgeBasePage() {
                   type="text"
                   placeholder="Provide your source"
                   className="w-full border rounded-md p-2 mt-1"
-                  value={source}
-                  onChange={(e) => setSource(e.target.value)}
+                  value={textSource}
+                  onChange={(e) => setTextSource(e.target.value)}
                 />
               </div>
               <div>
@@ -210,8 +209,8 @@ export default function KnowledgeBasePage() {
                   type="text"
                   placeholder="Enter a name for the document"
                   className="w-full border rounded-md p-2 mt-1"
-                  value={source}
-                  onChange={(e) => setSource(e.target.value)}
+                  value={uploadSource}
+                  onChange={(e) => setUploadSource(e.target.value)}
                 />
               </div>
 
@@ -277,7 +276,7 @@ export default function KnowledgeBasePage() {
                     setPopoverVisible(true);
                   }}
                 >
-                  {entry.name}
+                  {entry.source}
                 </li>
               ))}
             </ul>
@@ -299,34 +298,31 @@ export default function KnowledgeBasePage() {
               <button
                 className="px-3 py-1 rounded border text-gray-800 hover:bg-gray-100"
                 onClick={() => {
-                  const url = selectedFile.url || (selectedFile.file && URL.createObjectURL(selectedFile.file));
-                  if (url) {
-                    window.open(url, '_blank');
-                    setPopoverVisible(false);
-                    setTimeout(() => URL.revokeObjectURL(url), 1000);
-                  }
+                  const fileUrl = `/admin/documents/${selectedFile.id}`;
+                  window.open(fileUrl, '_blank');
+                  setPopoverVisible(false);
                 }}
               >
                 Open
               </button>
+
               <button
                 className="px-3 py-1 rounded border text-gray-800 hover:bg-gray-100"
                 onClick={() => {
-                  const url = selectedFile.url || (selectedFile.file && URL.createObjectURL(selectedFile.file));
-                  if (url) {
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = selectedFile.name;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    setPopoverVisible(false);
-                    setTimeout(() => URL.revokeObjectURL(url), 1000);
-                  }
+                  const fileUrl = `/admin/documents/${selectedFile.id}`;
+                  const a = document.createElement('a');
+                  a.href = fileUrl;
+                  a.download = selectedFile.source;
+                  document.body.appendChild(a);
+                  a.click();
+                  document.body.removeChild(a);
+                  setPopoverVisible(false);
                 }}
               >
                 Download
               </button>
+
+
             </div>
           </div>
         )}
