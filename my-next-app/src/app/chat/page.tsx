@@ -23,9 +23,8 @@ export default function OceansChatBot() {
     initializeApp,
   } = useChatAPI();
 
-  const handleNewChat = () => setCurrentChat(null);
-
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false); 
+  
   const handleNewChat = () => {
     setCurrentChat(null);
     localStorage.removeItem("currentChatId"); // Clear stored chat ID
@@ -138,14 +137,7 @@ export default function OceansChatBot() {
               />
             </div>
           )}
-
-          <ChatArea
-            messages={currentChat?.messages || []}
-            isLoading={isLoading}
-            title="What do you want to know?"
-            example="How thick was the ice in Cambridge Bay on February this year?"
-            onFeedback={handleFeedback}
-          />
+          
         <ChatArea
           messages={currentChat?.messages || []}
           isLoading={isLoading}
