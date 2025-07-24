@@ -9,6 +9,7 @@ export interface Message {
     comment: string
   }
   dpRequestId?: string
+  onc_api_url?: string
 }
 
 export interface Chat {
@@ -36,6 +37,7 @@ export interface ApiMessage {
     rating: number
     comment: string
   }
+  onc_api_url?: string
 }
 
 export interface ApiConversation {

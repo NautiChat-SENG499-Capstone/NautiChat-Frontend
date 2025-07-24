@@ -63,9 +63,9 @@ class DataProductService {
             return downloadUrl
           } else {
             console.log(`Request ${requestId} not ready yet, status: ${data.status}`)
-            // Wait 2 seconds before next attempt
+            // Wait 10 seconds before next attempt
             if (attempt < 10) {
-              await new Promise((resolve) => setTimeout(resolve, 2000))
+              await new Promise((resolve) => setTimeout(resolve, 10000))
             }
           }
         } catch (apiError) {

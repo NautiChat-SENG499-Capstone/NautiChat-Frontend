@@ -445,6 +445,7 @@ function convertApiMessage(apiMessage: ApiMessage): Message[] {
     messageId: apiMessage.message_id.toString(),
     feedback: apiMessage.feedback,
     dpRequestId: dpRequestId,
+    onc_api_url: apiMessage.onc_api_url,
   })
 
   return messages

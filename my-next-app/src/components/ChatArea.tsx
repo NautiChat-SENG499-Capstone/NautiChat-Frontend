@@ -8,6 +8,8 @@ import { AnimatedProcessingText } from "./AnimatedProcessingText"
 import type { Message } from "@/types/chat"
 import TTSButton from "@/components/TTSButton"
 import { TerritorialAcknowledgement } from "@/components/TerritorialAcknowledgement"
+import OncApiDownloadStarter from "@/components/OncDownloadStarter"
+import { useDownloadManager } from "@/hooks/use-download-manager"
 
 interface ChatAreaProps {
   messages?: Message[]
@@ -31,6 +33,7 @@ export function ChatArea({
   streamingResponse = "",
 }: ChatAreaProps) {
   const scrollAreaRef = useRef<HTMLDivElement>(null)
+  const { activeDownloads } = useDownloadManager()
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -72,6 +75,13 @@ export function ChatArea({
                   })
                 : ""
 
+              const showDownloadStarter =
+                message.role === "assistant" &&
+                message.onc_api_url &&
+                (!message.dpRequestId ||
+                  (message.dpRequestId &&
+                    activeDownloads[message.dpRequestId]?.status !== "complete"))
+
               return (
                 <div key={message.id}>
                   <div className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
@@ -99,6 +109,10 @@ export function ChatArea({
                         <TTSButton text={message.content} />
                       </div>
                     </div>
+                  )}
+
+                  {showDownloadStarter && (
+                    <OncApiDownloadStarter oncApiUrl={message.onc_api_url!} />
                   )}
 
                   {message.role === "assistant" &&

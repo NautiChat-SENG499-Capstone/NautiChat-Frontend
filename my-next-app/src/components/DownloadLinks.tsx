@@ -1,29 +1,30 @@
 "use client"
 
+import { useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Download, Clock, AlertCircle } from "lucide-react"
 import { useDownloadManager } from "@/hooks/use-download-manager"
 
 interface DownloadLinksProps {
-  dpRequestId: string // This is the request_id from backend
+  dpRequestId: string
   className?: string
 }
 
 export function DownloadLinks({ dpRequestId, className = "" }: DownloadLinksProps) {
   const { activeDownloads, startDownload } = useDownloadManager()
-
-  if (!dpRequestId || dpRequestId === "no" || dpRequestId.trim() === "") {
-    return null
-  }
-
   const downloadJob = activeDownloads[dpRequestId]
+
+  // Ensure polling starts on mount if it hasn't already
+  useEffect(() => {
+    if (!downloadJob) {
+      startDownload(dpRequestId)
+    }
+  }, [dpRequestId, downloadJob, startDownload])
 
   const handleButtonClick = () => {
     if (downloadJob?.status === "complete" && downloadJob.downloadUrl) {
-      // Data is ready - directly open the download URL
       window.open(downloadJob.downloadUrl, "_blank", "noopener,noreferrer")
     } else {
-      // Data not ready - start the download process
       startDownload(dpRequestId)
     }
   }
@@ -32,9 +33,9 @@ export function DownloadLinks({ dpRequestId, className = "" }: DownloadLinksProp
     if (!downloadJob) {
       return {
         icon: <Download className="h-4 w-4" />,
-        text: "Generate Download",
+        text: "Checking Status...",
         variant: "outline" as const,
-        disabled: false,
+        disabled: true,
       }
     }
 
@@ -77,7 +78,7 @@ export function DownloadLinks({ dpRequestId, className = "" }: DownloadLinksProp
       default:
         return {
           icon: <Download className="h-4 w-4" />,
-          text: "Generate Download",
+          text: "Download",
           variant: "outline" as const,
           disabled: false,
         }
@@ -89,7 +90,7 @@ export function DownloadLinks({ dpRequestId, className = "" }: DownloadLinksProp
   return (
     <div className={`mt-3 ${className}`}>
       <div className="text-sm text-gray-600 font-medium mb-2 flex items-center">
-        Data Product Available:
+        Data Product:
         <span className="ml-2 text-xs text-gray-500">ID: {dpRequestId}</span>
       </div>
       <Button
