@@ -80,10 +80,10 @@ export default function AdminLandingPage() {
           <Link href="/admin/queries">
             <div className="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition cursor-pointer p-6">
               <div className="mb-4">
-                <div className="text-xl font-semibold text-blue-600">User Queries</div>
+                <div className="text-xl font-semibold text-[#002175]">User Queries</div>
                 <div className="text-sm text-gray-500">Analyze and monitor submitted questions</div>
               </div>
-              <div className="h-24 bg-gray-100 rounded-md flex items-center justify-center text-blue-900 text-lg font-medium">
+              <div className="h-24 bg-gray-100 rounded-md flex items-center justify-center text-[#0068A3] text-lg font-medium">
                 {queryCount !== null ? `${queryCount} queries` : 'Loading...'}
               </div>
             </div>
@@ -93,10 +93,10 @@ export default function AdminLandingPage() {
           <Link href="/admin/feedback">
             <div className="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition cursor-pointer p-6">
               <div className="mb-4">
-                <div className="text-xl font-semibold text-green-600">User Feedback</div>
+                <div className="text-xl font-semibold text-[#002175]">User Feedback</div>
                 <div className="text-sm text-gray-500">View chatbot ratings and user comments</div>
               </div>
-              <div className="h-24 bg-gray-100 rounded-md flex flex-col items-center justify-center text-blue-900 text font-medium leading-tight">
+              <div className="h-24 bg-gray-100 rounded-md flex flex-col items-center justify-center text-[#0068A3] text font-medium leading-tight">
                 {feedbackStats ? (
                   <>
                     <div>{feedbackStats.total} Ratings</div>
@@ -121,10 +121,10 @@ export default function AdminLandingPage() {
           <Link href="/admin/knowledge">
             <div className="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition cursor-pointer p-6">
               <div className="mb-4">
-                <div className="text-xl font-semibold text-purple-600">Manage Knowledge Base</div>
+                <div className="text-xl font-semibold text-[#002175]">Manage Knowledge Base</div>
                 <div className="text-sm text-gray-500">Add questions, answers, and upload documents</div>
               </div>
-              <div className="h-24 bg-gray-100 rounded-md flex items-center justify-center text-blue-900 text-lg font-medium">
+              <div className="h-24 bg-gray-100 rounded-md flex items-center justify-center text-[#0068A3] text-lg font-medium">
                 {docCount !== null ? `${docCount} documents` : 'Loading...'}
               </div>
             </div>
@@ -134,7 +134,7 @@ export default function AdminLandingPage() {
           <Link href="/chat">
             <div className="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition cursor-pointer p-6">
               <div className="mb-4">
-                <div className="text-xl font-semibold text-indigo-600">Launch NautiChat</div>
+                <div className="text-xl font-semibold text-[#002175]">Launch NautiChat</div>
                 <div className="text-sm text-gray-500">Open the chatbot interface</div>
               </div>
               <div className="h-24 bg-gray-100 rounded-md flex items-center justify-center">
@@ -148,10 +148,10 @@ export default function AdminLandingPage() {
           <Link href="/admin/users">
             <div className="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition cursor-pointer p-6">
               <div className="mb-4">
-                <div className="text-xl font-semibold text-red-600">Manage Admin Users</div>
+                <div className="text-xl font-semibold text-[#002175]">Manage Admin Users</div>
                 <div className="text-sm text-gray-500">Add, edit, or remove system users</div>
               </div>
-              <div className="h-24 bg-gray-100 rounded-md flex items-center justify-center text-blue-900 text-lg font-medium">
+              <div className="h-24 bg-gray-100 rounded-md flex items-center justify-center text-[#0068A3] text-lg font-medium">
                 {adminUserCount !== null ? `${adminUserCount} admins` : 'Loading...'}
               </div>
             </div>
@@ -161,10 +161,10 @@ export default function AdminLandingPage() {
           <Link href="/admin/cluster">
             <div className="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition cursor-pointer p-6">
               <div className="mb-4">
-                <div className="text-xl font-semibold text-yellow-600">User Question Groups</div>
+                <div className="text-xl font-semibold text-[#002175]">User Question Groups</div>
                 <div className="text-sm text-gray-500">View grouped queries by topic or intent</div>
               </div>
-              <div className="h-24 bg-gray-100 rounded-md flex items-center justify-center text-blue-900 text-lg font-medium">
+              <div className="h-24 bg-gray-100 rounded-md flex items-center justify-center text-[#0068A3] text-lg font-medium">
                 {clusterCount !== null ? `${clusterCount} clusters` : 'Loading...'}
               </div>
             </div>
