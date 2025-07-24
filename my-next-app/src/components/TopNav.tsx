@@ -30,7 +30,7 @@ export default function TopNav() {
         {/* ✅ Removed Settings Icon */}
 
         {/* ✅ Profile icon now links to a placeholder route */}
-        <Link href="/shaban/shala" title="Profile" className="hover:text-gray-800 transition">
+        <Link href="/auth/manage" title="Profile" className="hover:text-gray-800 transition">
           <User size={20} />
         </Link>
 
