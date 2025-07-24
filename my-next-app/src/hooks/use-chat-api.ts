@@ -226,6 +226,7 @@ export function useChatAPI() {
         messageId: aiResponse.message_id.toString(),
         feedback: aiResponse.feedback,
         dpRequestId: dpRequestId,
+        onc_api_url: aiResponse.onc_api_url,
       }
 
       setCurrentChat((prev: Chat | null) =>
