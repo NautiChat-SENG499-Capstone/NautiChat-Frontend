@@ -72,6 +72,7 @@ export interface MessageResponse {
     rating: number
     comment: string
   }
+  onc_api_url?: string
 }
 
 export interface FeedbackRequest {

@@ -74,6 +74,8 @@ export function ChatArea({
                     minute: "2-digit",
                   })
                 : ""
+              
+              console.log("url is " + message.onc_api_url);
 
               const showDownloadStarter =
                 message.role === "assistant" &&
@@ -111,8 +113,8 @@ export function ChatArea({
                     </div>
                   )}
 
-                  {showDownloadStarter && (
-                    <OncApiDownloadStarter oncApiUrl={message.onc_api_url!} />
+                  {showDownloadStarter && message.onc_api_url && (
+                    <OncApiDownloadStarter oncApiUrl={message.onc_api_url} />
                   )}
 
                   {message.role === "assistant" &&
