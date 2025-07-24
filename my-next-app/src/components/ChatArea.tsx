@@ -130,7 +130,8 @@ export function ChatArea({
               )
             })}
 
-            {isLoading && !streamingResponse && (
+            {/* Use AnimatedProcessingText when loading */}
+            {isLoading && !streamingResponse && messages.length > 0 && (
               <div className="flex justify-start">
                 <div className="w-fit max-w-[85%] sm:max-w-[75%] min-h-[40px] flex items-center rounded-2xl px-3 py-2 bg-gray-200 rounded-bl-md">
                   <AnimatedProcessingText />
@@ -149,5 +150,5 @@ export function ChatArea({
         </div>
       </ScrollArea>
     </div>
-  )
+  );
 }
