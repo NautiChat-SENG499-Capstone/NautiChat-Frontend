@@ -2,7 +2,6 @@
 
 import { useAuth } from "@/context/AuthContext"
 import { Button } from "@/components/ui/button"
-import { TerritorialAcknowledgement } from "@/components/TerritorialAcknowledgement"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,92 +18,78 @@ import { useEffect, useState } from "react"
 export function ChatHeader() {
   const { isLoggedIn, isGuest, logout } = useAuth()
   const router = useRouter()
-
   const [isAdmin, setIsAdmin] = useState(false)
+
   useEffect(() => {
-    // Checks localStorage to see if the user has admin privileges
     const adminFlag = localStorage.getItem("is_admin")
     setIsAdmin(adminFlag === "true")
   }, [])
 
   const handleLogout = () => {
-    logout() // Logs the user out using the AuthContext
-    router.push("/auth/login") // Redirects to the login page
+    logout()
+    router.push("/auth/login")
   }
 
   return (
-    <div className="bg-sky-950 text-white p-6">
-      <div className="flex items-center justify-between mb-4">
-        {/* Left Side: ONC Logo */}
-        <div className="flex items-center space-x-4">
+    <div className="bg-sky-950 text-white px-4 py-6">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        {/* Left: Logos */}
+        <div className="flex items-center space-x-4 justify-center md:justify-start">
           <a
             href="https://www.oceannetworks.ca"
             target="_blank"
             rel="noopener noreferrer"
-            className="w-16 h-16 bg-white rounded flex items-center justify-center hover:bg-gray-50 transition-colors cursor-pointer"
+            className="w-12 h-12 md:w-16 md:h-16 bg-white rounded flex items-center justify-center hover:bg-gray-50 transition-colors"
           >
             <Image src="/ONC_Primary_Pantone.png" alt="Logo" width={100} height={55} />
           </a>
-        </div>
-
-        {/* Center: Title and Logos */}
-        <div className="text-center">
-          <div className="flex items-center justify-center space-x-3 mb-4">
-            <h1 className="text-3xl font-bold">Oceans 3.0 Chat Assistant</h1>
-            <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
-              <Image src="/NautiChatLogo.png" alt="Logo" width={100} height={50} />
-            </div>
+          <div className="w-12 h-12 md:w-16 md:h-16 bg-white rounded-full flex items-center justify-center">
+            <Image src="/NautiChatLogo.png" alt="Logo" width={100} height={50} />
           </div>
-          <p className="text-lg mb-2 opacity-90">
-            Ask questions about the data collected from cabled observatories, mobile platforms and autonomous
-            instruments.
-          </p>
-          <TerritorialAcknowledgement />
-          <p className="text-sm opacity-75">Built with Meta Llama 3</p>
         </div>
 
-        {/* Right Side: Dropdown Menu */}
-        <div className="flex items-center">
+        {/* Center: Title and description */}
+        <div className="text-center md:text-left flex-1">
+          <h1 className="text-2xl md:text-3xl font-bold">Oceans 3.0 Chat Assistant</h1>
+          <p className="text-sm md:text-lg opacity-90">
+            Ask questions about data from observatories, platforms and instruments.
+          </p>
+          <p className="text-xs md:text-sm opacity-75">Built with Meta Llama 3</p>
+        </div>
+
+        {/* Right: Dropdown */}
+        <div className="flex justify-center md:justify-end">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="text-white hover:bg-white/20">
-                <Menu className="h-5 w-5" />
+                <Menu className="h-6 w-6" />
                 <span className="sr-only">Open menu</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
-              {/* Conditionally render "Manage Account" for logged-in users */}
               {isLoggedIn && !isGuest && (
                 <>
                   <DropdownMenuItem asChild>
-                    <Link href="/auth/manage" className="cursor-pointer">
-                      Manage Account
-                    </Link>
+                    <Link href="/auth/manage">Manage Account</Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                 </>
               )}
-              {/* Conditionally render "Admin" for admin users */}
               {isAdmin && (
                 <>
                   <DropdownMenuItem asChild>
-                    <Link href="/admin" className="cursor-pointer">
-                      Admin
-                    </Link>
+                    <Link href="/admin">Admin</Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                 </>
               )}
-              {/* Conditionally render "Sign out" or "Log in" */}
               {isLoggedIn && !isGuest ? (
-                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600 focus:text-red-600">
+                <DropdownMenuItem onClick={handleLogout} className="text-red-600">
                   Sign out
                 </DropdownMenuItem>
               ) : (
                 <DropdownMenuItem asChild>
-                  <Link href="/auth/login" className="cursor-pointer">
-                    Log in
-                  </Link>
+                  <Link href="/auth/login">Log in</Link>
                 </DropdownMenuItem>
               )}
             </DropdownMenuContent>

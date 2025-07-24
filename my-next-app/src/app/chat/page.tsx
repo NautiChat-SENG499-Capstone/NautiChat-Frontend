@@ -8,7 +8,8 @@ import { ConnectionStatus } from "@/components/ConnectionStatus"
 import { DownloadCompletePopup } from "@/components/DownloadCompletePopup"
 import { useDownloadManager } from "@/hooks/use-download-manager"
 import { useChatAPI } from "@/hooks/use-chat-api"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
+import type { Message, Chat } from "@/types/chat";
 
 export default function OceansChatBot() {
   const {
@@ -27,9 +28,13 @@ export default function OceansChatBot() {
 
   const { completedDownloads, dismissCompleted, activeDownloads } = useDownloadManager()
 
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false); 
+  
   const handleNewChat = () => {
     setCurrentChat(null);
+    localStorage.removeItem("currentChatId"); // Clear stored chat ID
   };
+  
 
   const handleSelectChat = async (chatId: string) => {
     try {
@@ -41,16 +46,35 @@ export default function OceansChatBot() {
 
   const handleSendMessage = async (content: string) => {
     if (!currentChat) {
+      // Optimistically create UI elements for a new chat
+      const tempUserMessage: Message = {
+        id: "temp-user-msg-" + Date.now(),
+        role: "user",
+        content,
+        timestamp: new Date(),
+      };
+
+      const tempChat: Chat = {
+        id: "temp-chat-" + Date.now(),
+        title: content.substring(0, 40),
+        messages: [tempUserMessage],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      setCurrentChat(tempChat);
+
       try {
         await createChat(content);
       } catch (err) {
         console.error("Failed to create chat:", err);
+        setCurrentChat(null); // Revert optimistic update on failure
       }
     } else {
       try {
         await sendMessage(content, currentChat.id);
       } catch (err) {
-        console.error("Failed to send message:", err);
+        console.error("Message error:", err);
       }
     }
   };
@@ -63,7 +87,7 @@ export default function OceansChatBot() {
     try {
       await submitFeedback(messageId, rating, comment);
     } catch (err) {
-      console.error("Failed to submit feedback:", err);
+      console.error("Feedback error:", err);
     }
   };
 
@@ -71,14 +95,38 @@ export default function OceansChatBot() {
     await initializeApp();
   };
 
+  // 🧠 Restore chat on first load
   useEffect(() => {
-    if (error) {
-      console.error("Chat API Error:", error);
+    const init = async () => {
+      await initializeApp();
+      const storedId = localStorage.getItem("currentChatId");
+      if (storedId) {
+        try {
+          await loadChat(storedId);
+        } catch (err) {
+          console.warn("Failed to load stored chat:", err);
+          localStorage.removeItem("currentChatId");
+        }
+      }
+    };
+    init();
+  }, []);
+
+  //vSave current chat to localStorage when it changes
+  useEffect(() => {
+    if (currentChat?.id) {
+      localStorage.setItem("currentChatId", currentChat.id);
     }
+  }, [currentChat?.id]);
+
+  // Log error (optional)
+  useEffect(() => {
+    if (error) console.error("Chat API Error:", error);
   }, [error]);
 
   return (
     <div className="flex h-screen bg-gray-100">
+      {/* Sidebar */}
       <div className="flex-shrink-0 h-full">
         <ChatSidebar
           chats={chats}
@@ -86,14 +134,18 @@ export default function OceansChatBot() {
           onNewChat={handleNewChat}
           onSelectChat={handleSelectChat}
           isLoading={isLoading}
+          isCollapsed={isSidebarCollapsed}
+          onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
         />
       </div>
 
+      {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 h-full">
         <div className="flex-shrink-0">
           <ChatHeader />
         </div>
 
+        {/* Connection Status Indicator */}
         {connectionStatus !== "connected" && (
           <div className="flex-shrink-0">
             <ConnectionStatus
@@ -105,7 +157,7 @@ export default function OceansChatBot() {
           </div>
         )}
 
-        {/* Pass isLoading prop to ChatArea */}
+        {/* Chat Messages Area */}
         <ChatArea
           messages={currentChat?.messages || []}
           isLoading={isLoading}
@@ -114,6 +166,7 @@ export default function OceansChatBot() {
           onFeedback={handleFeedback}
         />
 
+        {/* Chat Input Field */}
         <ChatInput
           onSendMessage={handleSendMessage}
           disabled={isLoading || connectionStatus !== "connected"}
@@ -128,6 +181,7 @@ export default function OceansChatBot() {
           }
         />
 
+        {/* Error Display Area */}
         {error && connectionStatus === "connected" && (
           <div className="flex-shrink-0 bg-red-100 border border-red-400 text-red-700 px-4 py-3 mx-4 mb-4 rounded">
             <strong>Error:</strong> {error}
