@@ -107,7 +107,7 @@ export function ChatArea({
                     message.dpRequestId.trim() !== "" && (
                       <div className="flex justify-start">
                         <div className="w-fit max-w-[85%] sm:max-w-[75%] ml-0">
-                          <DownloadLinks link={message.downloadLink} />
+                          <DownloadLinks dpRequestId={message.dpRequestId} />
                         </div>
                       </div>
                     )}
