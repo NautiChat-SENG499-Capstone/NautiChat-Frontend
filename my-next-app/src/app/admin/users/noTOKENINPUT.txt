@@ -17,7 +17,6 @@ export default function AdminUsersPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [rePassword, setRePassword] = useState('');
-  const [oncToken, setOncToken] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -39,7 +38,7 @@ export default function AdminUsersPage() {
   };
 
   const handleSubmit = async () => {
-    if (!username || !password || !rePassword || !oncToken) {
+    if (!username || !password || !rePassword) {
       alert('All fields are required.');
       return;
     }
@@ -54,18 +53,18 @@ export default function AdminUsersPage() {
       await api.post('/admin/create', {
         username,
         password,
-        onc_token: oncToken,
+        onc_token: process.env.NEXT_PUBLIC_ONC_TOKEN, 
       }, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
+
       alert('Admin user created!');
       setUsername('');
       setPassword('');
       setRePassword('');
-      setOncToken('');
       setFormOpen(false);
       fetchUsers();
     } catch (err) {
@@ -176,13 +175,6 @@ export default function AdminUsersPage() {
                     value={rePassword}
                     onChange={e => setRePassword(e.target.value)}
                   />
-                  <input
-                    type="text"
-                    placeholder="ONC Token"
-                    className="w-full border rounded p-2"
-                    value={oncToken}
-                    onChange={e => setOncToken(e.target.value)}
-                  />
                   <div className="flex justify-end space-x-2 pt-4">
                     <button
                       onClick={() => setFormOpen(false)}
@@ -207,8 +199,3 @@ export default function AdminUsersPage() {
     </AdminGuard>
   );
 }
-
-
-
-
-
