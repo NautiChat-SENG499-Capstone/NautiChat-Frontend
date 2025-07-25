@@ -8,6 +8,8 @@ import { AnimatedProcessingText } from "./AnimatedProcessingText"
 import type { Message } from "@/types/chat"
 import TTSButton from "@/components/TTSButton"
 import { TerritorialAcknowledgement } from "@/components/TerritorialAcknowledgement"
+import OncApiDownloadStarter from "@/components/OncDownloadStarter"
+import { useDownloadManager } from "@/hooks/use-download-manager"
 
 interface ChatAreaProps {
   messages?: Message[]
@@ -31,6 +33,7 @@ export function ChatArea({
   streamingResponse = "",
 }: ChatAreaProps) {
   const scrollAreaRef = useRef<HTMLDivElement>(null)
+  const { activeDownloads } = useDownloadManager()
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -71,18 +74,25 @@ export function ChatArea({
                     minute: "2-digit",
                   })
                 : ""
+              
+              console.log("url is " + message.onc_api_url);
+
+              const showDownloadStarter =
+                message.role === "assistant" &&
+                message.onc_api_url &&
+                (!message.dpRequestId ||
+                  (message.dpRequestId &&
+                    activeDownloads[message.dpRequestId]?.status !== "complete"))
 
               return (
                 <div key={message.id}>
-                  <div
-                    className={`flex ${isUser ? "justify-end" : "justify-start"}`}
-                  >
+                  <div className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
                     <div
                       className={`w-fit max-w-[85%] sm:max-w-[75%] rounded-2xl px-3 py-2 ${
                         isUser
                           ? "bg-blue-600 text-white rounded-br-md"
                           : "bg-gray-200 text-gray-800 rounded-bl-md"
-                      }`}
+                      } ${message.content === "Processing..." ? "animate-pulse" : ""}`}
                     >
                       <p className="text-sm leading-relaxed">{message.content}</p>
                       <p
@@ -103,12 +113,17 @@ export function ChatArea({
                     </div>
                   )}
 
+                  {showDownloadStarter && message.onc_api_url && (
+                    <OncApiDownloadStarter oncApiUrl={message.onc_api_url} />
+                  )}
+
                   {message.role === "assistant" &&
-                    message.downloadLink &&
-                    message.downloadLink !== "no" && (
+                    message.content !== "Processing..." &&
+                    message.dpRequestId &&
+                    message.dpRequestId.trim() !== "" && (
                       <div className="flex justify-start">
                         <div className="w-fit max-w-[85%] sm:max-w-[75%] ml-0">
-                          <DownloadLinks link={message.downloadLink} />
+                          <DownloadLinks dpRequestId={message.dpRequestId} />
                         </div>
                       </div>
                     )}
