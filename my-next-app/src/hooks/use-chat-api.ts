@@ -17,35 +17,46 @@ export function useChatAPI() {
   const isInitializing = useRef(false);
 
   const initializeApp = async () => {
-    if (isInitializing.current || isInitialized.current) {
-      return;
-    }
+    if (isInitializing.current || isInitialized.current) return;
+
     try {
       isInitializing.current = true;
       setIsLoading(true);
       setError(null);
       setConnectionStatus("connecting");
+
       const isConnected = await chatAPI.testConnection();
+
       if (isConnected) {
         setConnectionStatus("connected");
         await loadChats();
+
+        // Try to restore last chat
+        const lastChatId = localStorage.getItem("currentChatId");
+        if (lastChatId) {
+          try {
+            await loadChat(lastChatId);
+          } catch (err) {
+            console.warn("Failed to restore previous chat", err);
+            localStorage.removeItem("currentChatId");
+          }
+        }
+
         isInitialized.current = true;
       } else {
         setConnectionStatus("error");
-        setError(
-          "Unable to connect to the API server. Please check your connection."
-        );
+        setError("Unable to connect to the API server. Please check your connection.");
       }
     } catch (err) {
       setConnectionStatus("error");
-      const errorMessage =
-        err instanceof Error ? err.message : "Failed to initialize app";
+      const errorMessage = err instanceof Error ? err.message : "Failed to initialize app";
       setError(errorMessage);
     } finally {
       setIsLoading(false);
       isInitializing.current = false;
     }
   };
+
 
   const loadChats = async () => {
     try {
@@ -75,25 +86,29 @@ export function useChatAPI() {
 
   const createChat = async (firstMessage: string) => {
     try {
-      setIsLoading(true);
-      setError(null);
-      const conversationTitle =
-        firstMessage.slice(0, 50) + (firstMessage.length > 50 ? "..." : "");
-      const newConversation = await chatAPI.createConversation(
-        conversationTitle
-      );
-      const aiResponse = await chatAPI.sendMessage(
-        firstMessage,
-        newConversation.conversation_id
-      );
-      let downloadLink: string | undefined = undefined;
-      if (
-        aiResponse.download_link &&
-        aiResponse.download_link !== "no" &&
-        aiResponse.download_link.trim() !== ""
-      ) {
-        downloadLink = aiResponse.download_link;
+      setIsLoading(true)
+      setError(null)
+
+      console.log("Creating new conversation...")
+
+      // Step 1: Create a new conversation
+      const conversationTitle = firstMessage.slice(0, 50) + (firstMessage.length > 50 ? "..." : "")
+      const newConversation = await chatAPI.createConversation(conversationTitle)
+
+      // Step 2: Send the first message to get AI response
+      const aiResponse = await chatAPI.sendMessage(firstMessage, newConversation.conversation_id)
+
+      // Process request_id
+      let dpRequestId: string | undefined = undefined
+
+      console.log("Processing request_id from new chat response:", aiResponse.request_id)
+
+      if (aiResponse.request_id && aiResponse.request_id > 0) {
+        dpRequestId = aiResponse.request_id.toString()
+        console.log("Found request_id in new chat:", dpRequestId)
       }
+
+      // Step 3: Create the chat object with both messages
       const newChat: Chat = {
         id: newConversation.conversation_id,
         title: newConversation.title,
@@ -114,7 +129,8 @@ export function useChatAPI() {
             timestamp: new Date(),
             messageId: aiResponse.message_id.toString(),
             feedback: aiResponse.feedback,
-            downloadLink: downloadLink,
+            dpRequestId: dpRequestId,
+            onc_api_url: aiResponse.onc_api_url,
           },
         ],
       };
@@ -178,18 +194,23 @@ export function useChatAPI() {
               ...prev,
               messages: [...prev.messages, userMessage],
             }
-          : null
-      );
+          : null,
+      )
 
-      const aiResponse = await chatAPI.sendMessage(content, chatId);
-      let downloadLink: string | undefined = undefined;
-      if (
-        aiResponse.download_link &&
-        aiResponse.download_link !== "no" &&
-        aiResponse.download_link.trim() !== ""
-      ) {
-        downloadLink = aiResponse.download_link;
+      // Send to API
+      const aiResponse = await chatAPI.sendMessage(content, chatId)
+
+      // Process request_id
+      let dpRequestId: string | undefined = undefined
+
+      console.log("Processing request_id from message response:", aiResponse.request_id)
+
+      if (aiResponse.request_id && aiResponse.request_id > 0) {
+        dpRequestId = aiResponse.request_id.toString()
+        console.log("Found request_id in message response:", dpRequestId)
       }
+
+      // Create real messages using the API response format
       const realUserMessage: Message = {
         id: `user-${aiResponse.message_id}`,
         content: aiResponse.input,
@@ -204,8 +225,9 @@ export function useChatAPI() {
         timestamp: new Date(),
         messageId: aiResponse.message_id.toString(),
         feedback: aiResponse.feedback,
-        downloadLink: downloadLink,
-      };
+        dpRequestId: dpRequestId,
+        onc_api_url: aiResponse.onc_api_url,
+      }
 
       setCurrentChat((prev: Chat | null) =>
         prev

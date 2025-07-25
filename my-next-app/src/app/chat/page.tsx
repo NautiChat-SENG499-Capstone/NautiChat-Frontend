@@ -1,12 +1,14 @@
 "use client";
 
-import { ChatHeader } from "@/components/ChatHeader";
-import { ChatSidebar } from "@/components/ChatSidebar";
-import { ChatArea } from "@/components/ChatArea";
-import { ChatInput } from "@/components/ChatInput";
-import { ConnectionStatus } from "@/components/ConnectionStatus";
-import { useChatAPI } from "@/hooks/use-chat-api";
-import { useEffect, useState } from "react";
+import { ChatHeader } from "@/components/ChatHeader"
+import { ChatSidebar } from "@/components/ChatSidebar"
+import { ChatArea } from "@/components/ChatArea"
+import { ChatInput } from "@/components/ChatInput"
+import { ConnectionStatus } from "@/components/ConnectionStatus"
+import { DownloadCompletePopup } from "@/components/DownloadCompletePopup"
+import { useDownloadManager } from "@/hooks/use-download-manager"
+import { useChatAPI } from "@/hooks/use-chat-api"
+import { useEffect, useState } from "react"
 import type { Message, Chat } from "@/types/chat";
 
 export default function OceansChatBot() {
@@ -22,11 +24,17 @@ export default function OceansChatBot() {
     submitFeedback,
     setCurrentChat,
     initializeApp,
-  } = useChatAPI();
+  } = useChatAPI()
 
-  const handleNewChat = () => setCurrentChat(null);
+  const { completedDownloads, dismissCompleted, activeDownloads } = useDownloadManager()
 
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false); 
+  
+  const handleNewChat = () => {
+    setCurrentChat(null);
+    localStorage.removeItem("currentChatId"); // Clear stored chat ID
+  };
+  
 
   const handleSelectChat = async (chatId: string) => {
     try {
@@ -87,6 +95,31 @@ export default function OceansChatBot() {
     await initializeApp();
   };
 
+  // 🧠 Restore chat on first load
+  useEffect(() => {
+    const init = async () => {
+      await initializeApp();
+      const storedId = localStorage.getItem("currentChatId");
+      if (storedId) {
+        try {
+          await loadChat(storedId);
+        } catch (err) {
+          console.warn("Failed to load stored chat:", err);
+          localStorage.removeItem("currentChatId");
+        }
+      }
+    };
+    init();
+  }, []);
+
+  //vSave current chat to localStorage when it changes
+  useEffect(() => {
+    if (currentChat?.id) {
+      localStorage.setItem("currentChatId", currentChat.id);
+    }
+  }, [currentChat?.id]);
+
+  // Log error (optional)
   useEffect(() => {
     if (error) console.error("Chat API Error:", error);
   }, [error]);
@@ -129,7 +162,7 @@ export default function OceansChatBot() {
           messages={currentChat?.messages || []}
           isLoading={isLoading}
           title="What do you want to know?"
-          example="How thick was the ice in Cambridge Bay on February this year?"
+          example="How thick was the ice in Cambridge Bay in February this year?"
           onFeedback={handleFeedback}
         />
 
@@ -155,6 +188,24 @@ export default function OceansChatBot() {
           </div>
         )}
       </div>
+
+      {/* Download complete popups */}
+      {completedDownloads.map((requestId) => {
+        const downloadJob = activeDownloads[requestId]
+        return (
+          <DownloadCompletePopup
+            key={requestId}
+            requestId={requestId}
+            onDownload={() => {
+              if (downloadJob?.downloadUrl) {
+                window.open(downloadJob.downloadUrl, "_blank", "noopener,noreferrer")
+              }
+              dismissCompleted(requestId)
+            }}
+            onDismiss={() => dismissCompleted(requestId)}
+          />
+        )
+      })}
     </div>
   );
 }
