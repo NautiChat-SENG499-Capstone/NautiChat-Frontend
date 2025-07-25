@@ -7,10 +7,14 @@ import { DownloadLinks } from "./DownloadLinks"
 import { AnimatedProcessingText } from "./AnimatedProcessingText"
 import type { Message } from "@/types/chat"
 import TTSButton from "@/components/TTSButton"
-import OncApiQueryButton from "@/components/OncApiQueryButton";
+import OncApiQueryButton from "@/components/OncApiQueryButton"
 import { TerritorialAcknowledgement } from "@/components/TerritorialAcknowledgement"
 import OncApiDownloadStarter from "@/components/OncDownloadStarter"
 import { useDownloadManager } from "@/hooks/use-download-manager"
+
+// Markdown rendering
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
 
 interface ChatAreaProps {
   messages?: Message[]
@@ -75,8 +79,6 @@ export function ChatArea({
                     minute: "2-digit",
                   })
                 : ""
-              
-              console.log("url is " + message.onc_api_url);
 
               const showDownloadStarter =
                 message.role === "assistant" &&
@@ -87,7 +89,7 @@ export function ChatArea({
 
               return (
                 <div key={message.id}>
-                  <div className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
+                  <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
                     <div
                       className={`w-fit max-w-[85%] sm:max-w-[75%] rounded-2xl px-3 py-2 ${
                         isUser
@@ -95,7 +97,12 @@ export function ChatArea({
                           : "bg-gray-200 text-gray-800 rounded-bl-md"
                       } ${message.content === "Processing..." ? "animate-pulse" : ""}`}
                     >
-                      <p className="text-sm leading-relaxed">{message.content}</p>
+                      <div className="prose prose-sm max-w-none markdown-body">
+                        <ReactMarkdown
+                          children={message.content}
+                          remarkPlugins={[remarkGfm]}
+                        />
+                      </div>
                       <p
                         className={`text-xs mt-1 ${
                           isUser ? "text-blue-100" : "text-gray-500"
@@ -153,7 +160,6 @@ export function ChatArea({
               )
             })}
 
-            {/* Use AnimatedProcessingText when loading */}
             {isLoading && !streamingResponse && messages.length > 0 && (
               <div className="flex justify-start">
                 <div className="w-fit max-w-[85%] sm:max-w-[75%] min-h-[40px] flex items-center rounded-2xl px-3 py-2 bg-gray-200 rounded-bl-md">
@@ -165,7 +171,12 @@ export function ChatArea({
             {streamingResponse && (
               <div className="flex justify-start">
                 <div className="w-fit max-w-[85%] sm:max-w-[75%] rounded-2xl px-3 py-2 bg-gray-200 text-gray-800 rounded-bl-md">
-                  <p className="text-sm leading-relaxed">{streamingResponse}</p>
+                  <div className="prose prose-sm max-w-none markdown-body">
+                    <ReactMarkdown
+                      children={streamingResponse}
+                      remarkPlugins={[remarkGfm]}
+                    />
+                  </div>
                 </div>
               </div>
             )}
@@ -173,5 +184,5 @@ export function ChatArea({
         </div>
       </ScrollArea>
     </div>
-  );
+  )
 }
