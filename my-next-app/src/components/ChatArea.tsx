@@ -100,10 +100,9 @@ export function ChatArea({
                       } ${message.content === "Processing..." ? "animate-pulse" : ""}`}
                     >
                       <div className="prose prose-sm max-w-none markdown-body">
-                        <ReactMarkdown
-                          children={message.content}
-                          remarkPlugins={[remarkGfm]}
-                        />
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {message.content}
+                        </ReactMarkdown>
                       </div>
                       <p
                         className={`text-xs mt-1 ${
@@ -174,10 +173,9 @@ export function ChatArea({
               <div className="flex justify-start">
                 <div className="w-fit max-w-[85%] sm:max-w-[75%] rounded-2xl px-3 py-2 bg-gray-200 text-gray-800 rounded-bl-md">
                   <div className="prose prose-sm max-w-none markdown-body">
-                    <ReactMarkdown
-                      children={streamingResponse}
-                      remarkPlugins={[remarkGfm]}
-                    />
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {streamingResponse}
+                    </ReactMarkdown>
                   </div>
                 </div>
               </div>
