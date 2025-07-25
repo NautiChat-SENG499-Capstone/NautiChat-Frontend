@@ -32,7 +32,7 @@ interface ChatAreaProps {
 export function ChatArea({
   messages = [],
   title = "What do you want to know?",
-  example = "What is the average temperature in Cambridge Bay?",
+  example = "",
   onFeedback,
   isLoading = false,
   streamingResponse = "",
@@ -57,8 +57,10 @@ export function ChatArea({
         <div className="max-w-2xl w-full text-center space-y-6 sm:space-y-8">
           <h2 className="text-2xl sm:text-4xl font-semibold text-gray-800">{title}</h2>
           <div className="space-y-1 sm:space-y-2">
-            <p className="text-sm sm:text-base text-gray-600 font-medium">Example:</p>
-            <p className="text-base sm:text-lg text-gray-800">{example}</p>
+            <p className="text-sm sm:text-base text-gray-600 font-medium">Examples:</p>
+            <p className="text-base sm:text-lg text-gray-800">{"What instruments are on the Cambridge Bay observatory?"}</p>
+            <p className="text-base sm:text-lg text-gray-800">{"What was the temperature in Cambridge Bay on this day last year?"}</p>
+            <p className="text-base sm:text-lg text-gray-800">{"I want to request scalar depth data from the NAV device at CBYDS from august 18th 2015 to august 19th 2015"}</p>
           </div>
           <TerritorialAcknowledgement />
         </div>
