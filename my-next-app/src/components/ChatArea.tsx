@@ -7,6 +7,7 @@ import { DownloadLinks } from "./DownloadLinks"
 import { AnimatedProcessingText } from "./AnimatedProcessingText"
 import type { Message } from "@/types/chat"
 import TTSButton from "@/components/TTSButton"
+import OncApiQueryButton from "@/components/OncApiQueryButton";
 import { TerritorialAcknowledgement } from "@/components/TerritorialAcknowledgement"
 import OncApiDownloadStarter from "@/components/OncDownloadStarter"
 import { useDownloadManager } from "@/hooks/use-download-manager"
@@ -107,14 +108,21 @@ export function ChatArea({
 
                   {message.role === "assistant" && (
                     <div className="flex justify-start">
-                      <div className="w-fit max-w-[85%] sm:max-w-[75%] ml-0">
-                        <TTSButton text={message.content} />
+                      <div className="max-w-[70%] ml-0">
+                        <div className="flex gap-2 mt-1">
+                          <TTSButton text={message.content} />
+                          <OncApiQueryButton oncApiUrl={message.onc_api_url} />
+                        </div>
                       </div>
                     </div>
                   )}
 
                   {showDownloadStarter && message.onc_api_url && (
-                    <OncApiDownloadStarter oncApiUrl={message.onc_api_url} />
+                    <div className="max-w-[70%] ml-0">
+                      <div className="flex gap-2 mt-1">
+                        <OncApiDownloadStarter oncApiUrl={message.onc_api_url} />
+                      </div>
+                    </div>
                   )}
 
                   {message.role === "assistant" &&
