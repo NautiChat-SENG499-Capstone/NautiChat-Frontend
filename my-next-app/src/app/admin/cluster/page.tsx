@@ -65,7 +65,7 @@ export default function ClusteredQueriesAccordionGridPage() {
   const clusterKeys = Object.keys(clusters).sort((a, b) => {
     if (a === '-1') return -1
     if (b === '-1') return 1
-    return Number(a) - Number(b)
+    return clusters[b].length - clusters[a].length
   })
 
   const toggleExpand = (clusterId: string) => {
