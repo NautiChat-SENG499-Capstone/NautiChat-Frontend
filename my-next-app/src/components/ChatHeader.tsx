@@ -89,7 +89,7 @@ export function ChatHeader() {
                 </DropdownMenuItem>
               ) : (
                 <DropdownMenuItem asChild>
-                  <Link href="/auth/login">Log in</Link>
+                  <Link href="/auth/register">Sign up</Link>
                 </DropdownMenuItem>
               )}
             </DropdownMenuContent>
