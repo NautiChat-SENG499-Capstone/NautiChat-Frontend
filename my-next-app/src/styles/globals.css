@@ -1,3 +1,16 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.markdown-body table {
+  @apply w-full border-collapse table-auto text-sm my-4;
+}
+
+.markdown-body th,
+.markdown-body td {
+  @apply border border-orange-300 px-3 py-2 text-left;
+}
+
+.markdown-body thead {
+  @apply bg-gray-100;
+}
