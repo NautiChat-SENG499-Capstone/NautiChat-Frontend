@@ -6,8 +6,16 @@ import AdminLayout from '@/components/AdminLayout';
 import AdminGuard from '@/components/AdminGuard';
 import api from '@/lib/api';
 
+// ✅ In-memory cache
+let cachedStats: {
+  queryCount: number;
+  feedbackStats: { total: number; thumbsUp: number; thumbsDown: number };
+  docCount: number;
+  adminUserCount: number;
+  clusterCount: number;
+} | null = null;
+
 export default function AdminLandingPage() {
-  // ✅ State
   const [queryCount, setQueryCount] = useState<number | null>(null);
   const [feedbackStats, setFeedbackStats] = useState<{
     total: number;
@@ -17,63 +25,101 @@ export default function AdminLandingPage() {
   const [docCount, setDocCount] = useState<number | null>(null);
   const [adminUserCount, setAdminUserCount] = useState<number | null>(null);
   const [clusterCount, setClusterCount] = useState<number | null>(null);
-
   const [errors, setErrors] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  // ✅ Fetch data on mount
+  const handleRefresh = () => {
+    setLoading(true);
+    cachedStats = null; // Clear the cache so next useEffect runs fresh
+
+    setQueryCount(null);
+    setFeedbackStats(null);
+    setDocCount(null);
+    setAdminUserCount(null);
+    setClusterCount(null);
+
+    // Simulate remount by forcing the effect to run
+    setTimeout(() => {
+      setLoading(false);
+      window.location.reload(); // Simple and effective way to re-trigger data load
+    }, 200);
+  };
+
+
   useEffect(() => {
+    if (cachedStats) {
+      setQueryCount(cachedStats.queryCount);
+      setFeedbackStats(cachedStats.feedbackStats);
+      setDocCount(cachedStats.docCount);
+      setAdminUserCount(cachedStats.adminUserCount);
+      setClusterCount(cachedStats.clusterCount);
+      return;
+    }
+
     const accessToken = localStorage.getItem('access_token');
     if (!accessToken) {
       setErrors(prev => [...prev, 'Unauthorized']);
       return;
     }
 
-    const headers = {
-      Authorization: `Bearer ${accessToken}`,
-    };
+    const headers = { Authorization: `Bearer ${accessToken}` };
 
-    // Queries & Feedback
-    api.get('/admin/messages', { headers })
-      .then((res) => {
-        const all = res.data;
-        setQueryCount(all.length);
+    // Fetch all in parallel
+    Promise.all([
+      api.get('/admin/messages', { headers }),
+      api.get('/admin/documents', { headers }),
+      api.get('/admin/users', { headers }),
+      api.get('/admin/messages/clustered', { headers })
+    ])
+      .then(([messagesRes, docsRes, usersRes, clustersRes]) => {
+        const messages = messagesRes.data;
+        const queryCount = messages.length;
 
-      const ratedMessages = all.filter((msg: any) => msg.feedback && msg.feedback.rating !== null && msg.feedback.rating !== undefined);
-      const thumbsUp = ratedMessages.filter((msg: any) => msg.feedback.rating === 2).length;
-      const thumbsDown = ratedMessages.filter((msg: any) => msg.feedback.rating === 1).length;
-      const total = ratedMessages.length;
+        const ratedMessages = messages.filter((msg: any) => msg.feedback?.rating !== null && msg.feedback?.rating !== undefined);
+        const thumbsUp = ratedMessages.filter((msg: any) => msg.feedback.rating === 2).length;
+        const thumbsDown = ratedMessages.filter((msg: any) => msg.feedback.rating === 1).length;
+        const total = ratedMessages.length;
 
+        const docCount = docsRes.data.length;
+        const adminUserCount = usersRes.data.filter((user: any) => user.is_admin).length;
+        const clusterCount = Object.keys(clustersRes.data).length;
 
+        cachedStats = {
+          queryCount,
+          feedbackStats: { total, thumbsUp, thumbsDown },
+          docCount,
+          adminUserCount,
+          clusterCount,
+        };
+
+        setQueryCount(queryCount);
         setFeedbackStats({ total, thumbsUp, thumbsDown });
+        setDocCount(docCount);
+        setAdminUserCount(adminUserCount);
+        setClusterCount(clusterCount);
       })
-      .catch(() => setErrors(prev => [...prev, 'Failed to load queries/feedback']));
-
-    // Knowledge Base
-    api.get('/admin/documents', { headers })
-      .then((res) => setDocCount(res.data.length))
-      .catch(() => setErrors(prev => [...prev, 'Failed to load documents']));
-
-    // Admin Users
-    api.get('/admin/users', { headers })
-      .then((res) => {
-        const admins = res.data.filter((user: any) => user.is_admin === true);
-        setAdminUserCount(admins.length);
-      })
-      .catch(() => setErrors(prev => [...prev, 'Failed to load users']));
-
-    // Clusters
-    api.get('/admin/messages/clustered', { headers })
-      .then((res) => setClusterCount(Object.keys(res.data).length))
-      .catch(() => setErrors(prev => [...prev, 'Failed to load clusters']));
+      .catch(() => setErrors(prev => [...prev, 'Failed to load dashboard stats']));
   }, []);
 
   return (
     <AdminGuard>
       <AdminLayout>
-        <header className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
-          <p className="text-gray-500 mt-1">Admin control panel for chatbot management</p>
-        </header>
+      <header className="mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
+            <p className="text-gray-500 mt-1">Admin control panel for chatbot management</p>
+          </div>
+          <button
+            onClick={handleRefresh}
+            disabled={loading}
+            className="mt-4 sm:mt-0 bg-blue-100 hover:bg-blue-200 text-blue-800 text-sm font-medium px-4 py-2 rounded-md border border-blue-300 shadow-sm transition"
+          >
+            {loading ? 'Refreshing...' : 'Refresh'}
+          </button>
+        </div>
+      </header>
+
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* User Queries */}
@@ -113,7 +159,6 @@ export default function AdminLandingPage() {
                   'Loading...'
                 )}
               </div>
-
             </div>
           </Link>
 
@@ -140,7 +185,6 @@ export default function AdminLandingPage() {
               <div className="h-24 bg-gray-100 rounded-md flex items-center justify-center">
                 <img src="/NautiChatLogo.png" alt="NautiChat Logo" className="h-16 object-contain" />
               </div>
-
             </div>
           </Link>
 

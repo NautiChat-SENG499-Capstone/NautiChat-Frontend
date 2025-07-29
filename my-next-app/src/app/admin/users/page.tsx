@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import AdminLayout from '@/components/AdminLayout';
 import AdminGuard from '@/components/AdminGuard';
 import api from '@/lib/api';
@@ -11,6 +11,9 @@ type User = {
   is_admin: boolean;
 };
 
+// ✅ Persistent cache outside the component
+let cachedUsers: User[] | null = null;
+
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [formOpen, setFormOpen] = useState(false);
@@ -19,24 +22,66 @@ export default function AdminUsersPage() {
   const [rePassword, setRePassword] = useState('');
   const [oncToken, setOncToken] = useState('');
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
+  const isFetching = useRef(false);
+
+  // ✅ Smart fetch with cache
+  const fetchUsers = (forceRefresh = false) => {
+    if (cachedUsers && !forceRefresh) {
+      setUsers(cachedUsers);
+      return;
+    }
+
+    runFullFetch(forceRefresh);
+  };
+
+  // ✅ Actually hits the API and compares new vs. cached
+  const runFullFetch = async (isRefresh = false) => {
+    if (isFetching.current) return;
+
+    if (isRefresh) setRefreshing(true);
+
+    isFetching.current = true;
+    const token = localStorage.getItem('access_token');
+
+    try {
+      const res = await api.get('/admin/users', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const newUsers = res.data;
+      const isChanged = JSON.stringify(newUsers) !== JSON.stringify(cachedUsers);
+
+      if (isChanged) {
+        cachedUsers = newUsers;
+        setUsers(newUsers);
+      }
+    } catch (err) {
+      console.error('Failed to load users:', err);
+    } finally {
+      isFetching.current = false;
+      setRefreshing(false);
+    }
+  };
+
+  // ✅ Initial load
   useEffect(() => {
     fetchUsers();
   }, []);
 
-  const fetchUsers = async () => {
-    try {
-      const token = localStorage.getItem('access_token');
-      const res = await api.get('/admin/users', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      setUsers(res.data);
-    } catch (err) {
-      console.error('Failed to load users:', err);
-    }
-  };
+  // ✅ Refresh on tab switch
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        cachedUsers = null;
+        fetchUsers(true);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () =>
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
 
   const handleSubmit = async () => {
     if (!username || !password || !rePassword || !oncToken) {
@@ -51,15 +96,19 @@ export default function AdminUsersPage() {
     try {
       setLoading(true);
       const token = localStorage.getItem('access_token');
-      await api.post('/admin/create', {
-        username,
-        password,
-        onc_token: oncToken,
-      }, {
-        headers: {
-          Authorization: `Bearer ${token}`,
+      await api.post(
+        '/admin/create',
+        {
+          username,
+          password,
+          onc_token: oncToken,
         },
-      });
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       alert('Admin user created!');
       setUsername('');
@@ -67,7 +116,8 @@ export default function AdminUsersPage() {
       setRePassword('');
       setOncToken('');
       setFormOpen(false);
-      fetchUsers();
+      cachedUsers = null;
+      fetchUsers(true);
     } catch (err) {
       console.error('Create user error:', err);
       alert('Failed to create user.');
@@ -86,7 +136,8 @@ export default function AdminUsersPage() {
         },
       });
       alert('User deleted.');
-      fetchUsers();
+      cachedUsers = null;
+      fetchUsers(true);
     } catch (err) {
       console.error('Delete error:', err);
       alert('Failed to delete user.');
@@ -97,11 +148,23 @@ export default function AdminUsersPage() {
     <AdminGuard>
       <AdminLayout>
         <section className="w-full max-w-screen-xl mx-auto py-4 px-6">
-          <header className="mb-4">
-            <h1 className="text-2xl font-bold text-gray-800">Manage Users</h1>
-            <p className="text-sm text-gray-600">
-              Add or remove admin users.
-            </p>
+          <header className="mb-4 flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-800">Manage Users</h1>
+              <p className="text-sm text-gray-600">Add or remove admin users.</p>
+            </div>
+            <button
+              onClick={() => {
+                cachedUsers = null;
+                fetchUsers(true);
+              }}
+              disabled={refreshing}
+              className={`text-sm px-3 py-1 rounded transition ${
+                refreshing ? 'bg-gray-400' : 'bg-blue-500 hover:bg-blue-600'
+              } text-white`}
+            >
+              {refreshing ? 'Refreshing…' : '🔄 Refresh'}
+            </button>
           </header>
 
           <div className="mb-4">
@@ -124,7 +187,7 @@ export default function AdminUsersPage() {
                 </tr>
               </thead>
               <tbody>
-                {users.map(user => (
+                {users.map((user) => (
                   <tr key={user.id} className="border-t hover:bg-gray-50">
                     <td className="p-3">{user.id}</td>
                     <td className="p-3">{user.username}</td>
@@ -160,28 +223,28 @@ export default function AdminUsersPage() {
                     placeholder="Username"
                     className="w-full border rounded p-2"
                     value={username}
-                    onChange={e => setUsername(e.target.value)}
+                    onChange={(e) => setUsername(e.target.value)}
                   />
                   <input
                     type="password"
                     placeholder="Password"
                     className="w-full border rounded p-2"
                     value={password}
-                    onChange={e => setPassword(e.target.value)}
+                    onChange={(e) => setPassword(e.target.value)}
                   />
                   <input
                     type="password"
                     placeholder="Re-enter Password"
                     className="w-full border rounded p-2"
                     value={rePassword}
-                    onChange={e => setRePassword(e.target.value)}
+                    onChange={(e) => setRePassword(e.target.value)}
                   />
                   <input
                     type="text"
                     placeholder="ONC Token"
                     className="w-full border rounded p-2"
                     value={oncToken}
-                    onChange={e => setOncToken(e.target.value)}
+                    onChange={(e) => setOncToken(e.target.value)}
                   />
                   <div className="flex justify-end space-x-2 pt-4">
                     <button
@@ -207,8 +270,3 @@ export default function AdminUsersPage() {
     </AdminGuard>
   );
 }
-
-
-
-
-

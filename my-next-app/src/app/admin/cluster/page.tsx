@@ -1,88 +1,112 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react'
-import AdminLayout from '@/components/AdminLayout'
-import AdminGuard from '@/components/AdminGuard'
-import api from '@/lib/api'
+import { useEffect, useState } from 'react';
+import AdminLayout from '@/components/AdminLayout';
+import AdminGuard from '@/components/AdminGuard';
+import api from '@/lib/api';
+
+// Cached clusters (in-memory only)
+let cachedClusters: Record<string, string[]> | null = null;
 
 export default function ClusteredQueriesAccordionGridPage() {
-  const [clusters, setClusters] = useState<Record<string, string[]>>({})
-  const [expanded, setExpanded] = useState<string | null>(null)
-  const [modalCluster, setModalCluster] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const [clusters, setClusters] = useState<Record<string, string[]>>({});
+  const [expanded, setExpanded] = useState<string | null>(null);
+  const [modalCluster, setModalCluster] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState('');
 
-  useEffect(() => {
-    const fetchClusters = async () => {
-      setLoading(true)
-      setError('')
-      try {
-        const token = localStorage.getItem('access_token')
-        if (!token) {
-          setError('Unauthorized: Please log in as an admin.')
-          return
-        }
-
-        const res = await api.get('/admin/messages/clustered', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-
-        setClusters(res.data)
-      } catch (err: any) {
-        console.error('Error fetching groups:', err)
-        setError('Failed to load grouped queries.')
-      } finally {
-        setLoading(false)
-      }
+  const fetchClusters = async (isRefresh = false) => {
+    if (!isRefresh && cachedClusters) {
+      setClusters(cachedClusters);
+      setLoading(false);
+      return;
     }
 
-    fetchClusters()
-  }, [])
+    if (isRefresh) setRefreshing(true);
+    else setLoading(true);
 
- 
+    setError('');
+    try {
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        setError('Unauthorized: Please log in as an admin.');
+        return;
+      }
+
+      const res = await api.get('/admin/messages/clustered', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const newClusters = res.data;
+
+      const isChanged = JSON.stringify(newClusters) !== JSON.stringify(cachedClusters);
+
+      if (isChanged) {
+        cachedClusters = newClusters;
+        setClusters(newClusters);
+      }
+    } catch (err: any) {
+      console.error('Error fetching groups:', err);
+      setError('Failed to load grouped queries.');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchClusters();
+  }, []);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        setModalCluster(null)
+        setModalCluster(null);
       }
-    }
-
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [])
-
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   useEffect(() => {
-    if (modalCluster) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = 'auto'
-    }
-  }, [modalCluster])
+    document.body.style.overflow = modalCluster ? 'hidden' : 'auto';
+  }, [modalCluster]);
 
   const clusterKeys = Object.keys(clusters).sort((a, b) => {
-    if (a === '-1') return -1
-    if (b === '-1') return 1
-    return Number(a) - Number(b)
-  })
+    if (a === '-1') return -1;
+    if (b === '-1') return 1;
+    return clusters[b].length - clusters[a].length;
+  });
 
   const toggleExpand = (clusterId: string) => {
-    setExpanded((prev) => (prev === clusterId ? null : clusterId))
-  }
+    setExpanded((prev) => (prev === clusterId ? null : clusterId));
+  };
 
   return (
     <AdminGuard>
       <AdminLayout>
-        {/* Main Content (blurred when modal active) */}
-        <section className={`w-full max-w-screen-xl mx-auto py-4 px-6 ${modalCluster ? 'blur-sm' : ''}`}>
+        <section
+          className={`w-full max-w-screen-xl mx-auto py-4 px-6 ${
+            modalCluster ? 'blur-sm' : ''
+          }`}
+        >
           <div className="ml-[-33px]">
-            <header className="mb-4">
-              <h1 className="text-2xl font-bold text-gray-800">User Question Groups</h1>
-              <p className="text-sm text-gray-600">
-                Explore groups of similar questions asked.
-              </p>
+            <header className="mb-4 flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-800">User Question Groups</h1>
+                <p className="text-sm text-gray-600">
+                  Explore groups of similar questions asked.
+                </p>
+              </div>
+              <button
+                onClick={() => fetchClusters(true)}
+                className="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded hover:bg-blue-200"
+              >
+                {refreshing ? 'Refreshing...' : '🔄 Refresh'}
+              </button>
             </header>
 
             {error && <div className="text-red-600 text-sm mb-4">{error}</div>}
@@ -107,7 +131,6 @@ export default function ClusteredQueriesAccordionGridPage() {
                           ? 'Uncategorized'
                           : clusters[clusterId]?.[0] || `Group ${clusterId}`}
                       </span>
-
                       <span className="text-xs text-gray-500">
                         {clusters[clusterId].length} queries
                       </span>
@@ -115,7 +138,6 @@ export default function ClusteredQueriesAccordionGridPage() {
 
                     {expanded === clusterId && (
                       <div className="px-4 pb-3 max-h-[200px] overflow-y-auto relative">
-                        {/* Expand Button with Icon */}
                         <button
                           onClick={() => setModalCluster(clusterId)}
                           className="absolute top-1 right-1 text-lg text-blue-600 hover:text-blue-800 transition"
@@ -138,7 +160,6 @@ export default function ClusteredQueriesAccordionGridPage() {
           </div>
         </section>
 
-        {/* Modal (click background OR press ESC to close) */}
         {modalCluster && (
           <div
             className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm"
@@ -154,7 +175,6 @@ export default function ClusteredQueriesAccordionGridPage() {
                     ? 'Uncategorized'
                     : clusters[modalCluster]?.[0] || `Group ${modalCluster}`}
                 </h2>
-
                 <button
                   onClick={() => setModalCluster(null)}
                   className="text-sm text-gray-500 hover:text-gray-700"
@@ -172,5 +192,5 @@ export default function ClusteredQueriesAccordionGridPage() {
         )}
       </AdminLayout>
     </AdminGuard>
-  )
+  );
 }
