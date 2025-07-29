@@ -178,7 +178,7 @@ export default function OncApiDownloadStarter({ oncApiUrl }: OncApiDownloadStart
             </>
           ) : (
             <Button onClick={handleDownload} className="w-full" variant="default">
-              Download Ready - Click to Download
+              Request Download
             </Button>
           )}
         </div>

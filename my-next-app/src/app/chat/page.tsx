@@ -95,7 +95,7 @@ export default function OceansChatBot() {
     await initializeApp();
   };
 
-  // 🧠 Restore chat on first load
+  // Restore chat on first load
   useEffect(() => {
     const init = async () => {
       await initializeApp();

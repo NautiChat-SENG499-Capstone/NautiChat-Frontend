@@ -139,3 +139,16 @@
     animation: wave-text-animation 1.4s infinite ease-in-out;
   }
 }
+
+.markdown-body table {
+  @apply w-full border-collapse table-auto bg-white text-sm my-4;
+}
+
+.markdown-body th,
+.markdown-body td {
+  @apply border border-blue-300 px-3 py-2 text-left;
+}
+
+.markdown-body thead {
+  @apply bg-cyan-600;
+}
