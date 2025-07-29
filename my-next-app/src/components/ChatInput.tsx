@@ -76,7 +76,7 @@ export function ChatInput({ placeholder = "Ask anything ...", onSendMessage, dis
             onClick={submitMessage} // Button now calls the same clean function
             disabled={disabled || !message.trim()}
             size="icon"
-            className="absolute right-2 top-2 h-10 w-10 rounded-full bg-gray-600 hover:bg-gray-700 disabled:opacity-50"
+            className="absolute right-4 top-2 h-10 w-10 rounded-full bg-gray-600 hover:bg-gray-700 disabled:opacity-50"
           >
             <ArrowUp className="h-5 w-5" />
           </Button>
