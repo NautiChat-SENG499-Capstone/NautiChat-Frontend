@@ -264,11 +264,11 @@ return (
         {activeTab === 'view' && (
           <div>
             <h2 className="text-lg font-semibold text-gray-700 mb-4">Existing Knowledge Entries</h2>
-            <ul className="text-sm text-blue-600 list-disc ml-5 space-y-1">
+            <div className="space-y-3">
               {knowledgeEntries.map((entry, index) => (
-                <li
+                <div
                   key={index}
-                  className="cursor-pointer hover:underline relative"
+                  className="flex justify-between items-center p-4 rounded-md bg-gray-50 border hover:shadow cursor-pointer transition"
                   onClick={(e) => {
                     e.stopPropagation();
                     const rect = (e.target as HTMLElement).getBoundingClientRect();
@@ -280,10 +280,12 @@ return (
                     setPopoverVisible(true);
                   }}
                 >
-                  {entry.source}
-                </li>
+                  <span className="text-sm font-medium text-gray-800">{entry.source}</span>
+                  <span className="text-sm text-gray-500">Used {entry.usage_count ?? 0}×</span>
+                </div>
               ))}
-            </ul>
+            </div>
+
           </div>
         )}
       </div>
