@@ -121,8 +121,8 @@ class DataProductService {
         }
       } else {
         return {
-          status: "error",
-          message: data.message || "Unknown error occurred",
+          status: "running",
+          message: "Processing data product...",
         }
       }
     } catch (error) {
