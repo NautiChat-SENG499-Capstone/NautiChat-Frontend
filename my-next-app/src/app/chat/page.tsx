@@ -99,15 +99,15 @@ export default function OceansChatBot() {
   useEffect(() => {
     const init = async () => {
       await initializeApp();
-      const storedId = localStorage.getItem("currentChatId");
-      if (storedId) {
-        try {
-          await loadChat(storedId);
-        } catch (err) {
-          console.warn("Failed to load stored chat:", err);
-          localStorage.removeItem("currentChatId");
-        }
-      }
+      // const storedId = localStorage.getItem("currentChatId");
+      // if (storedId) {
+      //   try {
+      //     await loadChat(storedId);
+      //   } catch (err) {
+      //     console.warn("Failed to load stored chat:", err);
+      //     localStorage.removeItem("currentChatId");
+      //   }
+      // }
     };
     init();
   }, []);

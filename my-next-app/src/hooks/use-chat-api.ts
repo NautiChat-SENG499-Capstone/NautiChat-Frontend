@@ -31,16 +31,16 @@ export function useChatAPI() {
         setConnectionStatus("connected");
         await loadChats();
 
-        // Try to restore last chat
-        const lastChatId = localStorage.getItem("currentChatId");
-        if (lastChatId) {
-          try {
-            await loadChat(lastChatId);
-          } catch (err) {
-            console.warn("Failed to restore previous chat", err);
-            localStorage.removeItem("currentChatId");
-          }
-        }
+        // // Try to restore last chat
+        // const lastChatId = localStorage.getItem("currentChatId");
+        // if (lastChatId) {
+        //   try {
+        //     await loadChat(lastChatId);
+        //   } catch (err) {
+        //     console.warn("Failed to restore previous chat", err);
+        //     localStorage.removeItem("currentChatId");
+        //   }
+        // }
 
         isInitialized.current = true;
       } else {
