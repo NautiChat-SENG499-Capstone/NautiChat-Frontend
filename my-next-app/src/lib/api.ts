@@ -359,7 +359,7 @@ export class ChatAPI {
           )
         }
         const errorDetail = error.response?.data?.detail || error.message
-        throw new Error(`Failed to fetch conversation: ${errorDetail}`)
+        // throw new Error(`Failed to fetch conversation: ${errorDetail}`)
       }
       throw new Error("Failed to fetch conversation: Unknown error")
     }
